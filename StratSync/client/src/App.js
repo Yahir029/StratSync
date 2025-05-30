@@ -1,23 +1,43 @@
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="auth-container">
+      <div className="auth-card">
+        <img 
+          src="StratSync/client/assets/images/StratSync(Sin_fondo).png" 
+          alt="StratSync Logo" 
+          style={{width: '200px', marginBottom: '20px'}}
+        />
+        <h1 style={{color: '#260cb8'}}>Código de Acceso</h1>
+        
+        <form style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+          <div>
+            <label>Usuario:</label>
+            <input type="text" style={{padding: '8px', width: '100%'}} />
+          </div>
+          <button style={{
+            background: '#260cb8', 
+            color: 'white', 
+            padding: '10px',
+            border: 'none',
+            borderRadius: '5px'
+          }}>
+            Login
+          </button>
+        </form>
+        
+        <button style={{
+          background: 'none',
+          border: 'none',
+          color: '#260cb8',
+          marginTop: '15px',
+          textDecoration: 'underline'
+        }}>
+          Modo Administrador
+        </button>
+      </div>
     </div>
   );
 }
