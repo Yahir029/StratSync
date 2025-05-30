@@ -1,4 +1,5 @@
 import React from 'react';
+import logo from './strat-sync-logo.png';
 import './App.css';
 
 function App() {
@@ -6,7 +7,7 @@ function App() {
     <div className="auth-container">
       <div className="auth-card">
         <img 
-          src="StratSync/client/assets/images/StratSync(Sin_fondo).png" 
+          src={logo} 
           alt="StratSync Logo" 
           style={{width: '200px', marginBottom: '20px'}}
         />

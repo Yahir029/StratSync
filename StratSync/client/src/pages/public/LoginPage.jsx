@@ -21,7 +21,7 @@ const LoginPage = () => {
     <div className="auth-container">
       <div className="auth-card">
         <img 
-          src="/assets/images/StratSync(Sin_fondo).png" 
+          src="StratSync/client/assets/images/strat-sync-logo.png" 
           alt="StratSync Logo" 
           className="auth-logo"
         />

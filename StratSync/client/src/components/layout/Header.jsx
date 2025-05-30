@@ -9,7 +9,7 @@ const Header = () => {
     <header className="strat-sync-header">
       <div className="header-logo">
         <img 
-          src="/assets/images/StratSync(Sin_fondo).png" 
+          src="StratSync/client/assets/images/strat-sync-logo.png" 
           alt="StratSync Logo" 
           className="logo"
         />
