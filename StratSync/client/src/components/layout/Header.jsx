@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import '../../assets/styles/header.css';
+import { stratSyncLogo } from '../../assets/images'; // Importación corregida
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -9,7 +10,7 @@ const Header = () => {
     <header className="strat-sync-header">
       <div className="header-logo">
         <img 
-          src="StratSync/client/assets/images/strat-sync-logo.png" 
+          src={stratSyncLogo}  // Usamos el nombre que sabemos que funciona
           alt="StratSync Logo" 
           className="logo"
         />

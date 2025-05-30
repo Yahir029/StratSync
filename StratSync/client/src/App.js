@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from './strat-sync-logo.png';
+import { stratSyncLogo } from './assets/images/';
 import './App.css';
 
 function App() {
@@ -7,9 +7,9 @@ function App() {
     <div className="auth-container">
       <div className="auth-card">
         <img 
-          src={logo} 
+          src={stratSyncLogo} 
           alt="StratSync Logo" 
-          style={{width: '200px', marginBottom: '20px'}}
+          style={{width: '300px', marginBottom: 'auto'}}
         />
         <h1 style={{color: '#260cb8'}}>Código de Acceso</h1>
         
