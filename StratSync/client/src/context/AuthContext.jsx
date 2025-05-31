@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import md5 from 'md5';
 
 const AuthContext = createContext();
 
@@ -9,23 +10,52 @@ export const AuthProvider = ({ children }) => {
   const [adminAttempts, setAdminAttempts] = useState(0);
   const navigate = useNavigate();
 
-  // Datos de admin simulados (en producción esto viene del backend)
+  // Credenciales de administrador (en producción esto debe venir de tu backend)
   const ADMIN_CREDENTIALS = {
     username: 'admin',
-    passwordHash: '482c811da5d5b4bc6d497ffa98491e38' // md5 de 'admin123'
+    passwordHash: md5('admin123') // Hash MD5 de 'admin123'
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('stratSyncUser');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        localStorage.removeItem('stratSyncUser');
+    const checkAuthStatus = () => {
+      const storedUser = localStorage.getItem('stratSyncUser');
+
+      // Si no hay usuario almacenado, redirige inmediatamente al login
+      if (!storedUser) {
+        setLoading(false);
+        redirectToLogin();
+        return;
       }
+
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        // Validación adicional del usuario almacenado
+        if (parsedUser && typeof parsedUser === 'object' && parsedUser.username) {
+          setUser(parsedUser);
+          // Si está en página de login y ya está autenticado, redirige al dashboard
+          if (['/login', '/admin-login'].includes(window.location.pathname)) {
+            navigate('/dashboard', { replace: true });
+          }
+        } else {
+          throw new Error('Usuario inválido');
+        }
+      } catch (error) {
+        console.error('Error al analizar usuario:', error);
+        localStorage.removeItem('stratSyncUser');
+        redirectToLogin();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, [navigate]);
+
+  const redirectToLogin = () => {
+    if (!['/login', '/admin-login'].includes(window.location.pathname)) {
+      navigate('/login', { replace: true });
     }
-    setLoading(false);
-  }, []);
+  };
 
   const login = async (username) => {
     const userData = { 
@@ -35,7 +65,7 @@ export const AuthProvider = ({ children }) => {
     };
     setUser(userData);
     localStorage.setItem('stratSyncUser', JSON.stringify(userData));
-    navigate('/dashboard');
+    navigate('/dashboard', { replace: true });
     return userData;
   };
 
@@ -44,10 +74,8 @@ export const AuthProvider = ({ children }) => {
       throw new Error('Demasiados intentos. Espere 5 minutos');
     }
 
-    // Simula el hash MD5 (instala md5 con: npm install md5)
-    const md5 = require('md5');
     const isAdmin = (
-      username === ADMIN_CREDENTIALS.username && 
+      username === ADMIN_CREDENTIALS.username &&
       md5(password) === ADMIN_CREDENTIALS.passwordHash
     );
 
@@ -60,7 +88,7 @@ export const AuthProvider = ({ children }) => {
       setUser(adminData);
       localStorage.setItem('stratSyncUser', JSON.stringify(adminData));
       setAdminAttempts(0);
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
       return adminData;
     } else {
       setAdminAttempts(prev => prev + 1);
@@ -71,7 +99,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('stratSyncUser');
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   return (
