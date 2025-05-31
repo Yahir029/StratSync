@@ -1,41 +1,92 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import LoginForm from '../../components/auth/LoginForm';
-import '../../assets/styles/auth.css';
+import { FaLock, FaUser } from 'react-icons/fa';
+import styles from '../../assets/styles/Login.module.css';
+import stratSyncLogo from '../../assets/images/strat-sync-logo.png';
 
 const AdminLoginPage = () => {
-  const { adminLogin } = useAuth();
+  const { adminLogin, adminAttempts } = useAuth();
   const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [timeout, setTimeout] = useState(false);
 
-  const handleAdminLogin = async (username, password) => {
+  useEffect(() => {
+    if (adminAttempts >= 3) {
+      setTimeout(true);
+      const timer = setTimeout(() => {
+        setTimeout(false);
+      }, 300000); // 5 minutos
+      return () => clearTimeout(timer);
+    }
+  }, [adminAttempts]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (timeout) return;
+    
     try {
       await adminLogin(username, password);
     } catch (err) {
-      setError('Credenciales de administrador inválidas');
+      setError(err.message);
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
+    <div className={styles.container}>
+      <div className={styles.card}>
         <img 
-          src="/assets/images/StratSync(Sin_fondo).png" 
+          src={stratSyncLogo} 
           alt="StratSync Logo" 
-          className="auth-logo"
+          className={styles.logo}
         />
-        <h1 className="auth-title">Acceso Administrador</h1>
+        <h1 className={styles.title}>Acceso Administrador</h1>
         
-        <LoginForm isAdmin onSubmit={handleAdminLogin} />
+        {timeout ? (
+          <div className={styles.timeoutMessage}>
+            <FaLock className={styles.timeoutIcon} />
+            <p>Demasiados intentos fallidos</p>
+            <p>Por favor espere 5 minutos</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <input
+              type="text"
+              placeholder="Usuario Admin"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className={styles.input}
+              required
+              disabled={adminAttempts >= 3}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={styles.input}
+              required
+              disabled={adminAttempts >= 3}
+            />
+            <button 
+              type="submit" 
+              className={styles.button}
+              disabled={adminAttempts >= 3}
+            >
+              Ingresar como Admin
+            </button>
+          </form>
+        )}
         
-        {error && <p className="auth-error">{error}</p>}
+        {error && !timeout && <p className={styles.error}>{error}</p>}
         
         <button 
-          className="auth-switch-btn"
+          className={styles.switchButton}
           onClick={() => navigate('/login')}
         >
-          Modo Usuario Normal
+          <FaUser /> Modo Usuario Normal
         </button>
       </div>
     </div>
