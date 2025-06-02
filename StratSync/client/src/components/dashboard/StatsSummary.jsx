@@ -11,10 +11,6 @@ const StatsSummary = ({ data }) => {
         <h3>Profesores</h3>
         <p>{data?.teachersCount || 0}</p>
       </div>
-      <div className="stat-card">
-        <h3>Estudiantes</h3>
-        <p>{data?.studentsCount || 0}</p>
-      </div>
     </div>
   );
 };

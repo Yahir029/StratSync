@@ -1,0 +1,166 @@
+.teachers-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.main-content {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+/* Menú lateral de categorías */
+.categories-sidebar {
+  width: 220px;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  height: fit-content;
+  position: sticky;
+  top: 1rem;
+}
+
+.categories-sidebar h2 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #eee;
+}
+
+.categories-sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.categories-sidebar li {
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.categories-sidebar li:hover {
+  background-color: #f5f5f5;
+}
+
+.categories-sidebar li.active {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: bold;
+}
+
+/* Contenido principal */
+.teachers-content {
+  flex: 1;
+}
+
+.teachers-content h2 {
+  color: #444;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.teachers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Tarjetas de profesores */
+.teacher-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.teacher-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.teacher-card.selected {
+  border: 2px solid var(--primary-color);
+  background-color: #f8f9fa;
+}
+
+.teacher-oval {
+  width: 90px;
+  height: 110px;
+  background-color: #f0f0f0;
+  border-radius: 50% / 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.2rem;
+  border: 2px solid var(--primary-color);
+  position: relative;
+}
+
+.teacher-icon {
+  font-size: 2.8rem;
+  color: #666;
+}
+
+.selection-badge {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  background: var(--primary-color);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.teacher-info h4 {
+  margin: 0.5rem 0 0.3rem;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.teacher-info p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Pie de página */
+.footer {
+  margin-top: 3rem;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+  
+  .categories-sidebar {
+    width: 100%;
+    position: static;
+    margin-bottom: 1.5rem;
+  }
+  
+  .teachers-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
