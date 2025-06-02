@@ -16,24 +16,12 @@ import {
   FaEdit,
   FaTrash
 } from 'react-icons/fa';
+import { useCategories } from '../../context/CategoriesContext';
 import '../../assets/styles/teachers.css';
 
 const TeachersPage = () => {
-  // Categorías dinámicas
-  const dynamicCategories = [
-    'Idiomas',
-    'Matemáticas',
-    'Computación',
-    'Ciencias',
-    'Artes'
-  ];
-
-  // Categorías completas con fijas al inicio y final
-  const categories = [
-    'Todos',
-    ...dynamicCategories,
-    'Sin asignar'
-  ];
+  // Obtener categorías del contexto
+  const { categories, dynamicCategories } = useCategories();
 
   // Datos iniciales de profesores
   const initialTeachersData = {
