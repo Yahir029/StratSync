@@ -1,105 +1,193 @@
 .subjects-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 2rem;
+}
+
+.main-content {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+/* Menú lateral */
+.categories-sidebar {
+  width: 220px;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  height: fit-content;
+  position: sticky;
+  top: 1rem;
+}
+
+.categories-sidebar h2 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #eee;
+}
+
+.categories-sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.categories-sidebar li {
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.categories-sidebar li:hover {
+  background-color: #f5f5f5;
+}
+
+.categories-sidebar li.active {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: bold;
+}
+
+/* Contenido principal */
+.subjects-content {
+  flex: 1;
 }
 
 .subjects-header {
-  text-align: center;
   margin-bottom: 2rem;
 }
 
-.subjects-header h1 {
+.subjects-header h2 {
   color: var(--primary-color);
   margin-bottom: 0.5rem;
 }
 
 .subjects-header p {
   color: #666;
-  font-size: 1.1rem;
 }
 
-.courses-grid {
+/* Grid de materias */
+.subjects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1.5rem;
 }
 
-.course-card {
+/* Tarjetas de materias */
+.subject-card {
   background: white;
-  border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
 }
 
-.course-title {
-  color: var(--primary-color);
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #eee;
+.subject-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-.subjects-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.subject-card.selected {
+  border: 2px solid var(--primary-color);
+  background-color: #f8f9fa;
 }
 
-.subject-item {
+.subject-icon-container {
+  width: 80px;
+  height: 80px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.8rem;
-  border-radius: 6px;
-  transition: background 0.3s;
+  justify-content: center;
+  margin: 0 auto 1.2rem;
+  border: 2px solid var(--primary-color);
+  position: relative;
 }
 
-.subject-item:hover {
-  background: #f5f5f5;
+.subject-icon {
+  font-size: 2.5rem;
+  color: #666;
 }
 
-.subject-image-container {
-  width: 60px;
-  height: 60px;
+.selection-badge {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  background: var(--primary-color);
+  color: white;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.subject-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
 }
 
 .subject-info {
-  flex: 1;
+  text-align: center;
 }
 
-.subject-name {
-  font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 0.2rem;
+.subject-info h3 {
+  margin: 0.5rem 0 0.3rem;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.subject-code {
+  color: var(--primary-color);
+  font-weight: 500;
+  margin: 0.3rem 0;
+  font-size: 0.9rem;
 }
 
 .subject-teacher {
-  font-size: 0.8rem;
   color: #666;
-  margin-bottom: 0.2rem;
+  font-size: 0.9rem;
+  margin: 0.3rem 0 0;
+  font-style: italic;
 }
 
-.subject-schedule {
-  font-size: 0.8rem;
-  color: var(--primary-color);
-  font-weight: 500;
+/* Loading y footer */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+
+.footer {
+  margin-top: 3rem;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
 }
 
 @media (max-width: 768px) {
-  .courses-grid {
-    grid-template-columns: 1fr;
+  .main-content {
+    flex-direction: column;
   }
   
-  .subjects-container {
-    padding: 0.5rem;
+  .categories-sidebar {
+    width: 100%;
+    position: static;
+    margin-bottom: 1.5rem;
+  }
+  
+  .subjects-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 }
