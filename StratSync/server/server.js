@@ -1,14 +1,23 @@
-import app from './app.js';
-import sequelize from './config/db.js';
+const express = require('express');
+const cors = require('cors');
+const { sequelize } = require('./models');
+const authRoutes = require('./routes/authRoutes');
 
-const PORT = process.env.PORT || 4000;
+const app = express();
+const PORT = 4000;
 
-(async () => {
-  try {
-    await sequelize.sync({ alter: true });   // ← crea/actualiza tablas
-    console.log('🔄 Tablas sincronizadas');
-    app.listen(PORT, () => console.log(`🚀 Server en ${PORT}`));
-  } catch (e) {
-    console.error('Error DB:', e);
-  }
-})();
+app.use(cors());
+app.use(express.json());
+
+app.use('/api/auth', authRoutes);
+
+sequelize.authenticate()
+  .then(() => {
+    console.log('Conectado a la base de datos');
+    app.listen(PORT, () => {
+      console.log(`Servidor corriendo en puerto ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('Error al conectar con la base de datos:', err);
+  });
