@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await loginAdminService(username, password);
       const adminData = {
-        username: response.user.username,
+        username: response.username, // ← CORREGIDO
         isAdmin: true,
         token: response.token,
       };

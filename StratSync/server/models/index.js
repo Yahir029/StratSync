@@ -1,12 +1,15 @@
-'use strict';
+import fs from 'fs';
+import path from 'path';
+import { Sequelize, DataTypes } from 'sequelize';
+import configFile from '../config/config.js';
+import { fileURLToPath, pathToFileURL } from 'url';
 
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const process = require('process');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const config = configFile[env];
 const db = {};
 
 let sequelize;
@@ -16,23 +19,33 @@ if (config.use_env_variable) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (
-      file.indexOf('.') !== 0 &&
-      file !== basename &&
-      file.slice(-3) === '.js' &&
-      file.indexOf('.test.js') === -1
-    );
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
+// Filtrar archivos modelo válidos (.js que no sean index.js)
+const files = fs.readdirSync(__dirname).filter(file =>
+  file.indexOf('.') !== 0 && file !== basename && file.slice(-3) === '.js'
+);
 
+for (const file of files) {
+  const filePath = path.join(__dirname, file);
+  const fileUrl = pathToFileURL(filePath).href;
+  const { default: modelFunc } = await import(fileUrl);
+
+  if (typeof modelFunc !== 'function') {
+    console.error(`❌ El archivo "${file}" no exporta una función por defecto.`);
+    continue;
+  }
+
+  const model = modelFunc(sequelize, DataTypes);
+  if (!model || !model.name) {
+    console.error(`❌ El archivo "${file}" no retornó un modelo válido.`);
+    continue;
+  }
+
+  db[model.name] = model;
+}
+
+// Si los modelos tienen relaciones definidas
 Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
+  if (typeof db[modelName].associate === 'function') {
     db[modelName].associate(db);
   }
 });
@@ -40,4 +53,4 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-module.exports = db;
+export default db;

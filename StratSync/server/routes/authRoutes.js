@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
+import { loginAdmin } from '../controllers/authController.js';
+
 const router = express.Router();
-const authController = require('../controllers/authController');
 
-// Ruta para login administrador
-router.post('/admin-login', authController.adminLogin);
+router.post('/admin-login', loginAdmin);
 
-module.exports = router;
+export default router;

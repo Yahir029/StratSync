@@ -1,21 +1,12 @@
-const express = require('express');
-const cors = require('cors');
-const app = express();
-const authRoutes = require('./routes/authRoutes');
+import express from 'express';
+import cors from 'cors';
+import authRoutes from './routes/authRoutes.js';
 
-// Middlewares
-app.use(cors({
-  origin: '*', // o especifica tu frontend: 'http://localhost:3000'
-  credentials: true
-}));
+const app = express();
+
+app.use(cors());
 app.use(express.json());
 
-// Rutas
 app.use('/api/auth', authRoutes);
 
-// Ruta base de prueba
-app.get('/', (req, res) => {
-  res.send('API de StratSync funcionando');
-});
-
-module.exports = app;
+export default app;
