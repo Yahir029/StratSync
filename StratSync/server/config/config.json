@@ -1,13 +1,18 @@
 
 {
-  "development": {
-    "username": "tu_usuario_postgres",
-    "password": "tu_contraseña_postgres",
-    "database": "stratsync",
-    "host": "127.0.0.1",
-    "dialect": "postgres"
   
-  },
+  "development": {
+    "username": "stratsync_user",
+    "password": "stratDBconect01$",
+    "database": "stratsync",
+    "host": "localhost",
+    "dialect": "postgres",
+    "port": 5432,
+    "define": {
+      "freezeTableName": true,
+      "timestamps": true
+  }
+},
   "test": {
     "username": "root",
     "password": null,
