@@ -1,32 +1,38 @@
-'use strict';
+// server/models/administrador.js
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-module.exports = (sequelize, DataTypes) => {
-  const Administrador = sequelize.define('Administrador', {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    usuario: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    contraseña_hash: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    fecha_creacion: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    ultimo_acceso: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-  }, {
-    tableName: 'administradores', // 👈 Asegura que apunte a la tabla real
-    timestamps: false, // 👈 Si tu tabla no tiene createdAt/updatedAt
-  });
+const Administrador = sequelize.define('Administrador', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  usuario: {            // Cambia "usuario" al nombre real de la columna de usuario en la tabla
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  contraseña_hash: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  }
+}, {
+  tableName: 'administradores',  // Nombre real de la tabla en la BD
+  timestamps: false,
+});
 
-  return Administrador;
+// Función para obtener administrador por usuario
+async function getAdminByUsuario(usuario) {
+  try {
+    const admin = await Administrador.findOne({ where: { usuario } });
+    return admin;
+  } catch (error) {
+    throw error;
+  }
+}
+
+module.exports = {
+  Administrador,
+  getAdminByUsuario,
 };
