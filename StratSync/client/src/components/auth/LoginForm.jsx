@@ -1,21 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
+import { loginUser, loginAdmin } from '../../services/authService';
 import '../../assets/styles/auth.css';
 
-const LoginForm = ({ isAdmin = false, onSubmit }) => {
+const LoginForm = ({ isAdmin = false }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const { setAuth } = useContext(AuthContext);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isAdmin) {
-      onSubmit(username, password);
-    } else {
-      onSubmit(username);
+    setError('');
+    
+    try {
+      const response = isAdmin 
+        ? await loginAdmin(username, password)
+        : await loginUser(username);
+      
+      localStorage.setItem('authToken', response.token);
+      setAuth({
+        isAuthenticated: true,
+        user: response.user
+      });
+      
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
+      {error && <div className="auth-error">{error}</div>}
+      
       <div className="form-group">
         <label htmlFor="username">Usuario:</label>
         <input

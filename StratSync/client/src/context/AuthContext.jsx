@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import md5 from 'md5';
+import { loginUser, loginAdmin } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -10,63 +10,29 @@ export const AuthProvider = ({ children }) => {
   const [adminAttempts, setAdminAttempts] = useState(0);
   const navigate = useNavigate();
 
-  // Credenciales de administrador (en producción esto debe venir de tu backend)
-  const ADMIN_CREDENTIALS = {
-    username: 'admin',
-    passwordHash: md5('admin123') // Hash MD5 de 'admin123'
-  };
-
   useEffect(() => {
-    const checkAuthStatus = () => {
-      const storedUser = localStorage.getItem('stratSyncUser');
-
-      // Si no hay usuario almacenado, redirige inmediatamente al login
-      if (!storedUser) {
-        setLoading(false);
-        redirectToLogin();
-        return;
-      }
-
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        // Validación adicional del usuario almacenado
-        if (parsedUser && typeof parsedUser === 'object' && parsedUser.username) {
-          setUser(parsedUser);
-          // Si está en página de login y ya está autenticado, redirige al dashboard
-          if (['/login', '/admin-login'].includes(window.location.pathname)) {
-            navigate('/dashboard', { replace: true });
-          }
-        } else {
-          throw new Error('Usuario inválido');
-        }
-      } catch (error) {
-        console.error('Error al analizar usuario:', error);
-        localStorage.removeItem('stratSyncUser');
-        redirectToLogin();
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuthStatus();
-  }, [navigate]);
-
-  const redirectToLogin = () => {
-    if (!['/login', '/admin-login'].includes(window.location.pathname)) {
-      navigate('/login', { replace: true });
+    const storedUser = localStorage.getItem('stratSyncUser');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
-  };
+    setLoading(false);
+  }, []);
 
   const login = async (username) => {
-    const userData = { 
-      username,
-      isAdmin: false,
-      token: 'simulated-token-normal' 
-    };
-    setUser(userData);
-    localStorage.setItem('stratSyncUser', JSON.stringify(userData));
-    navigate('/dashboard', { replace: true });
-    return userData;
+    try {
+      const response = await loginUser(username);
+      const userData = {
+        username: response.user.username,
+        isAdmin: false,
+        token: response.token,
+      };
+      setUser(userData);
+      localStorage.setItem('stratSyncUser', JSON.stringify(userData));
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   };
 
   const adminLogin = async (username, password) => {
@@ -74,25 +40,20 @@ export const AuthProvider = ({ children }) => {
       throw new Error('Demasiados intentos. Espere 5 minutos');
     }
 
-    const isAdmin = (
-      username === ADMIN_CREDENTIALS.username &&
-      md5(password) === ADMIN_CREDENTIALS.passwordHash
-    );
-
-    if (isAdmin) {
+    try {
+      const response = await loginAdmin(username, password);
       const adminData = {
-        username,
+        username: response.user.username,
         isAdmin: true,
-        token: 'simulated-token-admin'
+        token: response.token,
       };
       setUser(adminData);
       localStorage.setItem('stratSyncUser', JSON.stringify(adminData));
       setAdminAttempts(0);
       navigate('/dashboard', { replace: true });
-      return adminData;
-    } else {
+    } catch (err) {
       setAdminAttempts(prev => prev + 1);
-      throw new Error(`Credenciales inválidas. Intentos restantes: ${3 - adminAttempts}`);
+      throw err;
     }
   };
 
@@ -112,7 +73,7 @@ export const AuthProvider = ({ children }) => {
         login,
         adminLogin,
         logout,
-        adminAttempts
+        adminAttempts,
       }}
     >
       {children}

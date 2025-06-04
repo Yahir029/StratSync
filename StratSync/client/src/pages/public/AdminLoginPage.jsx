@@ -12,6 +12,7 @@ const AdminLoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [timeout, setTimeout] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (adminAttempts >= 3) {
@@ -27,10 +28,20 @@ const AdminLoginPage = () => {
     e.preventDefault();
     if (timeout) return;
     
+    setIsLoading(true);
+    setError('');
+    
     try {
       await adminLogin(username, password);
     } catch (err) {
-      setError(err.message);
+      // Manejar específicamente errores de CORS
+      if (err.message.includes('CORS') || err.message.includes('Failed to fetch')) {
+        setError('Error de conexión con el servidor. Verifique su conexión o intente nuevamente.');
+      } else {
+        setError(err.message || 'Error de autenticación');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -59,7 +70,7 @@ const AdminLoginPage = () => {
               onChange={(e) => setUsername(e.target.value)}
               className={styles.input}
               required
-              disabled={adminAttempts >= 3}
+              disabled={isLoading}
             />
             <input
               type="password"
@@ -68,19 +79,29 @@ const AdminLoginPage = () => {
               onChange={(e) => setPassword(e.target.value)}
               className={styles.input}
               required
-              disabled={adminAttempts >= 3}
+              disabled={isLoading}
             />
             <button 
               type="submit" 
               className={styles.button}
-              disabled={adminAttempts >= 3}
+              disabled={isLoading}
             >
-              Ingresar como Admin
+              {isLoading ? 'Verificando...' : 'Ingresar como Admin'}
             </button>
           </form>
         )}
         
-        {error && !timeout && <p className={styles.error}>{error}</p>}
+        {error && !timeout && (
+          <div className={styles.error}>
+            <p>{error}</p>
+            <button 
+              className={styles.retryButton}
+              onClick={() => window.location.reload()}
+            >
+              Reintentar conexión
+            </button>
+          </div>
+        )}
         
         <button 
           className={styles.switchButton}

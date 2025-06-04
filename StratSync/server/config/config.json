@@ -1,25 +1,23 @@
-
 {
   "development": {
-    "username": "tu_usuario_postgres",
-    "password": "tu_contraseña_postgres",
+    "username": "stratsync_user",
+    "password": "stratDBconect01$",
     "database": "stratsync",
     "host": "127.0.0.1",
     "dialect": "postgres"
-  
   },
   "test": {
-    "username": "root",
-    "password": null,
-    "database": "database_test",
+    "username": "stratsync_user",
+    "password": "stratDBconect01$",
+    "database": "stratsync_test",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "postgres"
   },
   "production": {
-    "username": "root",
-    "password": null,
-    "database": "database_production",
+    "username": "stratsync_user",
+    "password": "stratDBconect01$",
+    "database": "stratsync_prod",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "postgres"
   }
 }
