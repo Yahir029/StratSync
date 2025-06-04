@@ -258,7 +258,7 @@ const TeachersPage = () => {
 
   return (
     <MainLayout>
-      <div className="teachers-container">
+      <div className="teachers-container" className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
         <h1>StratSync - Gestión de Profesores</h1>
         
         <div className="main-content">
@@ -364,21 +364,6 @@ const TeachersPage = () => {
                   </div>
                   <div className="teacher-info">
                     <h4>{teacher.firstName} {teacher.lastName}</h4>
-                    {teacher.category !== 'Sin asignar' && teacher.specialty && (
-                      <p className="teacher-specialty">
-                        <FaBriefcase /> {teacher.specialty}
-                      </p>
-                    )}
-                    {teacher.yearsExperience && (
-                      <p className="teacher-experience">
-                        {teacher.yearsExperience} años de experiencia
-                      </p>
-                    )}
-                    {teacher.educationLevel && (
-                      <p className="teacher-education">
-                        <FaGraduationCap /> {teacher.educationLevel}
-                      </p>
-                    )}
                     {teacher.bio && (
                       <div className="teacher-bio">
                         <FaInfoCircle /> {teacher.bio}
@@ -474,57 +459,31 @@ const TeachersPage = () => {
                       />
                     </div>
                   </div>
-                  
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label><FaCalendarAlt /> Fecha de Nacimiento</label>
+                      
+                  <div className="form-group">
+                    <label>Código de Identificación</label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
                       <input
-                        type="date"
-                        name="birthDate"
-                        value={newTeacher.birthDate}
-                        onChange={handleInputChange}
-                        max={new Date().toISOString().split('T')[0]}
+                        type="text"
+                        name="code"
+                        value={newTeacher.code || ''}
+                        readOnly
+                        placeholder="Genera un código"
+                        style={{ flex: 1 }}
                       />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label><FaGraduationCap /> Nivel Educativo</label>
-                      <select
-                        name="educationLevel"
-                        value={newTeacher.educationLevel}
-                        onChange={handleInputChange}
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const randomCode = Math.floor(10000 + Math.random() * 90000).toString();
+                          setNewTeacher(prev => ({ ...prev, code: randomCode }));
+                        }}
+                        className="generate-btn"
                       >
-                        <option value="">Seleccionar</option>
-                        {educationLevels.map(level => (
-                          <option key={level} value={level}>{level}</option>
-                        ))}
-                      </select>
+                        Generar
+                      </button>
                     </div>
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Especialidad</label>
-                    <input
-                      type="text"
-                      name="specialty"
-                      value={newTeacher.specialty}
-                      onChange={handleInputChange}
-                      placeholder="Área de especialización"
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Años de Experiencia</label>
-                    <input
-                      type="number"
-                      name="yearsExperience"
-                      value={newTeacher.yearsExperience}
-                      onChange={handleInputChange}
-                      min="0"
-                      max="50"
-                      placeholder="0"
-                    />
-                  </div>
+                  </div>    
+   
                   
                   <div className="form-group">
                     <label>Categoría</label>
@@ -532,7 +491,7 @@ const TeachersPage = () => {
                       name="category"
                       value={newTeacher.category}
                       onChange={handleInputChange}
-                    >
+                    > 
                       {dynamicCategories.map(category => (
                         <option key={category} value={category}>{category}</option>
                       ))}
@@ -595,6 +554,7 @@ const TeachersPage = () => {
                     >
                       Cancelar
                     </button>
+                    
                     <button 
                       type="submit"
                       className="submit-btn"
