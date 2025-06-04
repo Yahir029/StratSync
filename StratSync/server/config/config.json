@@ -1,0 +1,25 @@
+
+{
+  "development": {
+    "username": "tu_usuario_postgres",
+    "password": "tu_contraseña_postgres",
+    "database": "stratsync",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "database_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "database_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
