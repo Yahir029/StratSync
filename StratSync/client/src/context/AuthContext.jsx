@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUser, loginAdmin } from '../services/authService';
+import { adminLogin as loginAdminService } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -18,30 +18,13 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (username) => {
-    try {
-      const response = await loginUser(username);
-      const userData = {
-        username: response.user.username,
-        isAdmin: false,
-        token: response.token,
-      };
-      setUser(userData);
-      localStorage.setItem('stratSyncUser', JSON.stringify(userData));
-      navigate('/dashboard', { replace: true });
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
-  };
-
-  const adminLogin = async (username, password) => {
+  const handleAdminLogin = async (username, password) => {
     if (adminAttempts >= 3) {
       throw new Error('Demasiados intentos. Espere 5 minutos');
     }
 
     try {
-      const response = await loginAdmin(username, password);
+      const response = await loginAdminService(username, password);
       const adminData = {
         username: response.user.username,
         isAdmin: true,
@@ -52,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       setAdminAttempts(0);
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setAdminAttempts(prev => prev + 1);
+      setAdminAttempts((prev) => prev + 1);
       throw err;
     }
   };
@@ -70,8 +53,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         isAdmin: user?.isAdmin || false,
         loading,
-        login,
-        adminLogin,
+        adminLogin: handleAdminLogin,
         logout,
         adminAttempts,
       }}

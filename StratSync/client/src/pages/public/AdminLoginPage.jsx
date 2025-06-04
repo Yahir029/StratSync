@@ -11,14 +11,14 @@ const AdminLoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [timeout, setTimeout] = useState(false);
+  const [isTimeout, setIsTimeout] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (adminAttempts >= 3) {
-      setTimeout(true);
+      setIsTimeout(true);
       const timer = setTimeout(() => {
-        setTimeout(false);
+        setIsTimeout(false);
       }, 300000); // 5 minutos
       return () => clearTimeout(timer);
     }
@@ -26,15 +26,14 @@ const AdminLoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (timeout) return;
-    
+    if (isTimeout) return;
+
     setIsLoading(true);
     setError('');
-    
+
     try {
       await adminLogin(username, password);
     } catch (err) {
-      // Manejar específicamente errores de CORS
       if (err.message.includes('CORS') || err.message.includes('Failed to fetch')) {
         setError('Error de conexión con el servidor. Verifique su conexión o intente nuevamente.');
       } else {
@@ -48,14 +47,14 @@ const AdminLoginPage = () => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <img 
-          src={stratSyncLogo} 
-          alt="StratSync Logo" 
+        <img
+          src={stratSyncLogo}
+          alt="StratSync Logo"
           className={styles.logo}
         />
         <h1 className={styles.title}>Acceso Administrador</h1>
-        
-        {timeout ? (
+
+        {isTimeout ? (
           <div className={styles.timeoutMessage}>
             <FaLock className={styles.timeoutIcon} />
             <p>Demasiados intentos fallidos</p>
@@ -81,8 +80,8 @@ const AdminLoginPage = () => {
               required
               disabled={isLoading}
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className={styles.button}
               disabled={isLoading}
             >
@@ -90,11 +89,11 @@ const AdminLoginPage = () => {
             </button>
           </form>
         )}
-        
-        {error && !timeout && (
+
+        {error && !isTimeout && (
           <div className={styles.error}>
             <p>{error}</p>
-            <button 
+            <button
               className={styles.retryButton}
               onClick={() => window.location.reload()}
             >
@@ -102,8 +101,8 @@ const AdminLoginPage = () => {
             </button>
           </div>
         )}
-        
-        <button 
+
+        <button
           className={styles.switchButton}
           onClick={() => navigate('/login')}
         >
