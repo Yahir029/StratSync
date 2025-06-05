@@ -27,20 +27,26 @@ const files = fs.readdirSync(__dirname).filter(file =>
 for (const file of files) {
   const filePath = path.join(__dirname, file);
   const fileUrl = pathToFileURL(filePath).href;
-  const { default: modelFunc } = await import(fileUrl);
 
-  if (typeof modelFunc !== 'function') {
-    console.error(`❌ El archivo "${file}" no exporta una función por defecto.`);
-    continue;
+  try {
+    const { default: modelFunc } = await import(fileUrl);
+
+    if (typeof modelFunc !== 'function') {
+      console.error(`❌ El archivo "${file}" no exporta una función por defecto.`);
+      continue;
+    }
+
+    const model = modelFunc(sequelize, DataTypes);
+    if (!model || !model.name) {
+      console.error(`❌ El archivo "${file}" no retornó un modelo válido.`);
+      continue;
+    }
+
+    db[model.name] = model;
+    console.log(`✅ Modelo cargado: ${model.name}`);
+  } catch (err) {
+    console.error(`❌ Error al importar modelo "${file}":`, err);
   }
-
-  const model = modelFunc(sequelize, DataTypes);
-  if (!model || !model.name) {
-    console.error(`❌ El archivo "${file}" no retornó un modelo válido.`);
-    continue;
-  }
-
-  db[model.name] = model;
 }
 
 // Si los modelos tienen relaciones definidas
@@ -52,5 +58,7 @@ Object.keys(db).forEach(modelName => {
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+
+console.log(`✅ ${Object.keys(db).length} modelos cargados exitosamente.`);
 
 export default db;

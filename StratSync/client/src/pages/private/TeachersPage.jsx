@@ -7,9 +7,6 @@ import {
   FaTimes, 
   FaPhone, 
   FaEnvelope, 
-  FaGraduationCap, 
-  FaCalendarAlt,
-  FaBriefcase,
   FaInfoCircle,
   FaList,
   FaQuestionCircle,
@@ -20,10 +17,8 @@ import { useCategories } from '../../context/CategoriesContext';
 import '../../assets/styles/teachers.css';
 
 const TeachersPage = () => {
-  // Obtener categorías del contexto
   const { categories, dynamicCategories } = useCategories();
 
-  // Datos iniciales de profesores
   const initialTeachersData = {
     'Idiomas': [
       { 
@@ -32,10 +27,6 @@ const TeachersPage = () => {
         lastName: 'Smith', 
         email: 'john.smith@example.com',
         phone: '+1 555-123-4567',
-        birthDate: '1980-05-15',
-        educationLevel: 'Maestría',
-        specialty: 'Lingüística Aplicada',
-        yearsExperience: '12',
         bio: 'Profesor de inglés con 10 años de experiencia en enseñanza a adultos',
         photoPreview: null,
         category: 'Idiomas'
@@ -48,10 +39,6 @@ const TeachersPage = () => {
         lastName: 'Gómez', 
         email: 'c.gomez@example.com',
         phone: '+52 55-1234-5678',
-        birthDate: '1985-03-10',
-        educationLevel: 'Doctorado',
-        specialty: 'Álgebra Abstracta',
-        yearsExperience: '8',
         bio: 'Especialista en matemáticas avanzadas y métodos de enseñanza',
         photoPreview: null,
         category: 'Matemáticas'
@@ -75,7 +62,6 @@ const TeachersPage = () => {
     ]
   };
 
-  // Estados
   const [teachersData, setTeachersData] = useState(initialTeachersData);
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [selectedTeachers, setSelectedTeachers] = useState([]);
@@ -97,15 +83,6 @@ const TeachersPage = () => {
     category: 'Sin asignar'
   });
 
-  const educationLevels = [
-    'Licenciatura',
-    'Maestría',
-    'Doctorado',
-    'Especialización',
-    'Técnico'
-  ];
-
-  // Obtener profesores según categoría seleccionada
   const getTeachersByCategory = () => {
     if (selectedCategory === 'Todos') {
       return Object.values(teachersData).flat();
@@ -114,7 +91,6 @@ const TeachersPage = () => {
     }
   };
 
-  // Toggle teacher selection
   const toggleTeacherSelection = (teacherId) => {
     setSelectedTeachers(prev => 
       prev.includes(teacherId) 
@@ -123,13 +99,11 @@ const TeachersPage = () => {
     );
   };
 
-  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewTeacher(prev => ({ ...prev, [name]: value }));
   };
 
-  // Handle file upload
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -145,26 +119,22 @@ const TeachersPage = () => {
     }
   };
 
-  // Form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (isEditing) {
-      // Lógica para editar profesor existente
       setTeachersData(prev => {
-        const updatedData = {...prev};
-        const oldCategory = Object.keys(updatedData).find(cat => 
+        const updatedData = { ...prev };
+        const oldCategory = Object.keys(updatedData).find(cat =>
           updatedData[cat].some(t => t.id === currentTeacherId)
         );
-        
+
         if (oldCategory !== newTeacher.category) {
-          // Si cambió de categoría, remover de la antigua
           updatedData[oldCategory] = updatedData[oldCategory].filter(
             t => t.id !== currentTeacherId
           );
         }
-        
-        // Actualizar el profesor en la categoría correspondiente
+
         const updatedTeacher = {
           id: currentTeacherId,
           firstName: newTeacher.firstName,
@@ -179,21 +149,20 @@ const TeachersPage = () => {
           photoPreview: newTeacher.preview,
           category: newTeacher.category || 'Sin asignar'
         };
-        
+
         updatedData[newTeacher.category] = [
           ...(updatedData[newTeacher.category] || []).filter(t => t.id !== currentTeacherId),
           updatedTeacher
         ];
-        
+
         return updatedData;
       });
-      
+
       setIsEditing(false);
       setCurrentTeacherId(null);
     } else {
-      // Lógica para agregar nuevo profesor
       const newId = Math.max(...Object.values(teachersData).flat().map(t => t.id), 0) + 1;
-      
+
       const teacherToAdd = {
         id: newId,
         firstName: newTeacher.firstName,
@@ -209,7 +178,6 @@ const TeachersPage = () => {
         category: newTeacher.category || 'Sin asignar'
       };
 
-      // Agregar a la categoría correspondiente
       const category = teacherToAdd.category;
       setTeachersData(prev => ({
         ...prev,
@@ -217,7 +185,6 @@ const TeachersPage = () => {
       }));
     }
 
-    // Reset form
     setNewTeacher({
       firstName: '',
       lastName: '',
@@ -235,7 +202,6 @@ const TeachersPage = () => {
     setShowForm(false);
   };
 
-  // Preparar formulario para edición
   const prepareEditForm = (teacher) => {
     setNewTeacher({
       firstName: teacher.firstName,
@@ -258,11 +224,9 @@ const TeachersPage = () => {
 
   return (
     <MainLayout>
-      <div className="teachers-container" className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
+      <div className="teachers-container">
         <h1>StratSync - Gestión de Profesores</h1>
-        
         <div className="main-content">
-          {/* Menú lateral de categorías */}
           <div className="categories-sidebar">
             <h2>Categorías</h2>
             <ul>
@@ -283,7 +247,6 @@ const TeachersPage = () => {
             </ul>
           </div>
 
-          {/* Contenido principal */}
           <div className="teachers-content">
             <div className="teachers-header">
               <h2>Profesores - {selectedCategory}</h2>
@@ -298,8 +261,6 @@ const TeachersPage = () => {
                 >
                   <FaPlus /> Nuevo Profesor
                 </button>
-                
-                {/* Botones de acción que aparecen al seleccionar profesores */}
                 {selectedTeachers.length > 0 && (
                   <div className="selection-actions">
                     {selectedTeachers.length === 1 && (
@@ -317,11 +278,10 @@ const TeachersPage = () => {
                     <button 
                       className="delete-teacher-btn"
                       onClick={() => {
-                        // Confirmar antes de borrar
-                        if(window.confirm(`¿Estás seguro de eliminar ${selectedTeachers.length > 1 ? 
+                        if (window.confirm(`¿Estás seguro de eliminar ${selectedTeachers.length > 1 ?
                           'los profesores seleccionados' : 'este profesor'}?`)) {
                           setTeachersData(prev => {
-                            const newData = {...prev};
+                            const newData = { ...prev };
                             Object.keys(newData).forEach(category => {
                               newData[category] = newData[category]
                                 .filter(teacher => !selectedTeachers.includes(teacher.id));
@@ -338,7 +298,7 @@ const TeachersPage = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="teachers-grid">
               {getTeachersByCategory().map(teacher => (
                 <div 
@@ -389,7 +349,6 @@ const TeachersPage = () => {
           </div>
         </div>
 
-        {/* Modal de formulario */}
         {showForm && (
           <div className="modal-overlay">
             <div className="modal-content">
@@ -406,7 +365,6 @@ const TeachersPage = () => {
                   <FaTimes />
                 </button>
               </div>
-              
               <div className="form-scroll-container">
                 <form onSubmit={handleSubmit}>
                   <div className="form-row">
@@ -421,7 +379,6 @@ const TeachersPage = () => {
                         placeholder="Ej. Juan"
                       />
                     </div>
-                    
                     <div className="form-group">
                       <label>Apellidos</label>
                       <input
@@ -447,7 +404,6 @@ const TeachersPage = () => {
                         placeholder="ejemplo@dominio.com"
                       />
                     </div>
-                    
                     <div className="form-group">
                       <label><FaPhone /> Teléfono</label>
                       <input
@@ -459,7 +415,7 @@ const TeachersPage = () => {
                       />
                     </div>
                   </div>
-                      
+
                   <div className="form-group">
                     <label>Código de Identificación</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
@@ -483,8 +439,7 @@ const TeachersPage = () => {
                       </button>
                     </div>
                   </div>    
-   
-                  
+
                   <div className="form-group">
                     <label>Categoría</label>
                     <select
@@ -498,7 +453,7 @@ const TeachersPage = () => {
                       <option value="Sin asignar">Sin asignar</option>
                     </select>
                   </div>
-                  
+
                   <div className="form-group">
                     <label>Biografía/Resumen Profesional</label>
                     <textarea
@@ -509,7 +464,7 @@ const TeachersPage = () => {
                       placeholder="Breve descripción profesional..."
                     />
                   </div>
-                  
+
                   <div className="form-group">
                     <label>Foto de Perfil</label>
                     <div className="photo-upload">
@@ -541,7 +496,7 @@ const TeachersPage = () => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="form-actions">
                     <button 
                       type="button"
@@ -554,7 +509,6 @@ const TeachersPage = () => {
                     >
                       Cancelar
                     </button>
-                    
                     <button 
                       type="submit"
                       className="submit-btn"
