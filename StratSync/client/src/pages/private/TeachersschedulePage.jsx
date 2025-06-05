@@ -11,6 +11,15 @@ const mockSchedule = [
 const TeachersschedulePage = () => {
   const [loading, setLoading] = useState(true);
 
+    const timeSlots = [
+            '08:00 - 09:00',
+            '09:00 - 10:00',
+            '10:00 - 11:00',
+            '11:00 - 12:00',
+            '12:00 - 13:00',
+            '13:00 - 14:00',
+          ];
+
   useEffect(() => {
     // Si más adelante necesitas cargar datos, descomenta y ajusta:
     // const loadData = async () => {
@@ -25,7 +34,7 @@ const TeachersschedulePage = () => {
     // };
     // loadData();
 
-    // Por ahora simulamos que ya cargó:  
+    // Por ahora simulwamos que ya cargó:  
     setLoading(false);
   }, []);
 
@@ -53,21 +62,24 @@ const TeachersschedulePage = () => {
             <table className="schedule-table">
               <thead>
                 <tr>
-                  <th>Profesor</th>
-                  <th>Materia</th>
-                  <th>Día</th>
-                  <th>Hora</th>
-                  <th>Aula</th>
+                  <th>Horario</th>
+                  <th>Lunes</th>
+                  <th>Martes</th>
+                  <th>Miércoles</th>
+                  <th>Jueves</th>
+                  <th>Viernes</th>
                 </tr>
               </thead>
               <tbody>
-                {mockSchedule.map((entry, index) => (
+                {/* Aquí deberías generar filas por horario */}
+                {timeSlots.map((timeSlot, index) => (
                   <tr key={index}>
-                    <td>{entry.profesor}</td>
-                    <td>{entry.materia}</td>
-                    <td>{entry.dia}</td>
-                    <td>{entry.hora}</td>
-                    <td>{entry.aula}</td>
+                    <td>{timeSlot}</td>
+                    <td>{/* Clase del lunes en ese horario */}</td>
+                    <td>{/* Clase del martes en ese horario */}</td>
+                    <td>{/* Clase del miércoles en ese horario */}</td>
+                    <td>{/* Clase del jueves en ese horario */}</td>
+                    <td>{/* Clase del viernes en ese horario */}</td>
                   </tr>
                 ))}
               </tbody>

@@ -192,7 +192,7 @@ const SubjectsPage = () => {
 
   return (
     <MainLayout>
-      <div className="subjects-container">
+      <div className="subjects-container" className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
         <h1>StratSync - Gestión de Materias</h1>
         
         <div className="main-content">
