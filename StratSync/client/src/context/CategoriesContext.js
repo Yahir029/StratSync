@@ -69,20 +69,21 @@ export const CategoriesProvider = ({ children }) => {
   const categoryNames = ['Todos', ...categoriesObj.map((c) => c.nombre), 'Sin asignar'];
   const dynamicCategories = categoriesObj.map((c) => c.nombre);
 
-  return (
-    <CategoriesContext.Provider
-      value={{
-        // Si todavía está cargando, devolvemos solo lo mínimo
-        categories: loading ? ['Todos', 'Sin asignar'] : categoryNames,
-        dynamicCategories: loading ? [] : dynamicCategories,
-        addCategory,
-        deleteCategory,
-        loading
-      }}
-    >
-      {children}
-    </CategoriesContext.Provider>
-  );
+ // En el return del Provider, cambia esto:
+return (
+  <CategoriesContext.Provider
+    value={{
+      categories: loading ? ['Todos', 'Sin asignar'] : categoryNames,
+      dynamicCategories: loading ? [] : categoriesObj, // ← Envía los objetos completos
+      categoriesObj, // ← Expón esto también por si acaso
+      addCategory,
+      deleteCategory,
+      loading
+    }}
+  >
+    {children}
+  </CategoriesContext.Provider>
+);
 };
 
 export const useCategories = () => useContext(CategoriesContext);

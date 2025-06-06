@@ -1,144 +1,178 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
-import { 
-  FaPlus, 
-  FaTimes,
-  FaCalendarAlt,
-  FaChalkboardTeacher,
-  FaBook
+import {
+  FaPlus, FaTimes, FaCalendarAlt, FaChalkboardTeacher, FaBook
 } from 'react-icons/fa';
 import { useCategories } from '../../context/CategoriesContext';
+import {
+  getAllSchedules,
+  createSchedule
+} from '../../services/scheduleService';
+import { getTeachers } from '../../services/teacherService';
+import { getAllSubjects } from '../../services/subjectsService';
 import '../../assets/styles/dashboard.css';
 
 const SchedulePage = () => {
   const { categories } = useCategories();
+
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
+  const [scheduleData, setScheduleData] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [newAssignment, setNewAssignment] = useState({
     day: '',
-    timeSlot: '',
-    subject: '',
-    teacher: '',
+    subject_id: '',
+    teacher_id: '',
     startTime: '',
-    endTime: ''
+    endTime: '',
+    category_id: '',
+    category_name: '' // Nuevo campo para el nombre de la categoría
   });
 
-  // Datos de ejemplo - en una app real estos vendrían de tu backend
-  const [scheduleData, setScheduleData] = useState([
-    {
-      id: 1,
-      day: 'Lunes',
-      time: '9:00 - 10:00',
-      subject: 'Matemáticas',
-      teacher: 'Prof. García',
-      category: 'Matemáticas',
-      startTime: '09:00',
-      endTime: '10:00'
-    },
-    {
-      id: 2,
-      day: 'Miércoles',
-      time: '10:00 - 11:00',
-      subject: 'Historia',
-      teacher: 'Prof. Martínez',
-      category: 'Humanidades',
-      startTime: '10:00',
-      endTime: '11:00'
-    }
-  ]);
-
-  const [teachers, setTeachers] = useState([
-    { id: 1, name: 'Prof. García', categories: ['Matemáticas'] },
-    { id: 2, name: 'Prof. Martínez', categories: ['Humanidades'] }
-  ]);
-
-  const [subjects, setSubjects] = useState([
-    { id: 1, name: 'Matemáticas', category: 'Matemáticas' },
-    { id: 2, name: 'Historia', category: 'Humanidades' },
-    { id: 3, name: 'Inglés', category: 'Idiomas' }
-  ]);
-
-  const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
   const timeSlots = [
     '7:00 - 8:00', '8:00 - 9:00', '9:00 - 10:00',
     '10:00 - 11:00', '11:00 - 12:00', '12:00 - 13:00'
   ];
 
-  // Colores por categoría
   const categoryColors = {
-    'Matemáticas': '#FF9AA2',
-    'Idiomas': '#FFB7B2',
-    'Ciencias': '#FFDAC1',
-    'Humanidades': '#E2F0CB',
-    'Tecnología': '#B5EAD7',
-    'Artes': '#C7CEEA',
-    'Sin asignar': '#F5F5F5'
+    1: '#FFB7B2',   // Idiomas
+    2: '#FF9AA2',   // Matemáticas
+    3: '#E2F0CB',   // Humanidades
+    8: '#B5EAD7',   // Tecnología
+    'default': '#F5F5F5'
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [scheduleRes, teacherRes, subjectRes] = await Promise.all([
+        getAllSchedules(),
+        getTeachers(),
+        getAllSubjects()
+      ]);
+      
+      // Verificar estructuras de respuesta
+      const schedules = Array.isArray(scheduleRes?.data) 
+        ? scheduleRes.data 
+        : Array.isArray(scheduleRes) ? scheduleRes : [];
+      
+      const teachersData = Array.isArray(teacherRes?.data) 
+        ? teacherRes.data 
+        : Array.isArray(teacherRes) ? teacherRes : [];
+      
+      const subjectsData = Array.isArray(subjectRes?.data) 
+        ? subjectRes.data 
+        : Array.isArray(subjectRes) ? subjectRes : [];
+
+      // Combinar datos de profesores con horarios
+      const schedulesWithTeacherNames = schedules.map(schedule => {
+        // Buscar profesor por ID
+        const teacher = teachersData.find(t => t.id === schedule.profesor?.id);
+        
+        return {
+          ...schedule,
+          teacherName: teacher 
+            ? `${teacher.nombres} ${teacher.apellidos}` 
+            : 'Profesor no disponible'
+        };
+      });
+
+      setScheduleData(schedulesWithTeacherNames);
+      setTeachers(teachersData);
+      setSubjects(subjectsData);
+
+    } catch (err) {
+      console.error('Error al cargar datos:', err);
+      setError('Error al cargar datos: ' + (err.message || 'Por favor intente más tarde'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getSubjectName = (schedule) => {
+    return schedule.materia?.nombre || 'Materia no disponible';
+  };
+
+  const getCategoryId = (schedule) => {
+    return schedule.materia?.categoria_id || null;
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewAssignment(prev => ({ ...prev, [name]: value }));
     
-    // Actualizar categoría cuando se selecciona una materia
-    if (name === 'subject') {
-      const selectedSubject = subjects.find(s => s.name === value);
+    // Actualizar categoría automáticamente cuando se selecciona una materia
+    if (name === 'subject_id') {
+      const selectedSubject = subjects.find(s => s.id == value);
+      
       if (selectedSubject) {
+        // Buscar el nombre de la categoría
+        const category = categories.find(cat => cat.id == selectedSubject.categoria_id);
+        const categoryName = category ? category.nombre : 'Sin categoría';
+        
         setNewAssignment(prev => ({
           ...prev,
-          category: selectedSubject.category
+          [name]: value,
+          category_id: selectedSubject.categoria_id || '',
+          category_name: categoryName // Actualizar el nombre de la categoría
+        }));
+      } else {
+        setNewAssignment(prev => ({
+          ...prev,
+          [name]: value,
+          category_id: '',
+          category_name: ''
         }));
       }
+    } else {
+      setNewAssignment(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleSubmitAssignment = (e) => {
+  const handleSubmitAssignment = async (e) => {
     e.preventDefault();
-    
-    const newId = Math.max(...scheduleData.map(item => item.id), 0) + 1;
-    const timeString = `${newAssignment.startTime} - ${newAssignment.endTime}`;
-    
-    const newScheduleItem = {
-      id: newId,
-      day: newAssignment.day,
-      time: timeString,
-      subject: newAssignment.subject,
-      teacher: newAssignment.teacher,
-      category: newAssignment.category,
-      startTime: newAssignment.startTime,
-      endTime: newAssignment.endTime
-    };
-    
-    // Actualizar horario
-    setScheduleData(prev => [...prev, newScheduleItem]);
-    
-    // Actualizar categoría del profesor
-    const selectedTeacher = teachers.find(t => t.name === newAssignment.teacher);
-    const subjectCategory = subjects.find(s => s.name === newAssignment.subject)?.category;
-    
-    if (selectedTeacher && subjectCategory && 
-        !selectedTeacher.categories.includes(subjectCategory)) {
-      setTeachers(prev =>
-        prev.map(teacher =>
-          teacher.name === newAssignment.teacher
-            ? {
-                ...teacher,
-                categories: [...teacher.categories, subjectCategory]
-              }
-            : teacher
-        )
-      );
+
+    try {
+      const formatTime = (time) => time ? `${time}:00` : '';
+      
+      const newSchedule = {
+        dia_semana: days.indexOf(newAssignment.day) + 1,
+        hora_inicio: formatTime(newAssignment.startTime),
+        hora_fin: formatTime(newAssignment.endTime),
+        materia_id: newAssignment.subject_id,
+        profesor_id: newAssignment.teacher_id
+      };
+
+      await createSchedule(newSchedule);
+      await loadData();
+      setShowAssignmentForm(false);
+      setNewAssignment({
+        day: '',
+        subject_id: '',
+        teacher_id: '',
+        startTime: '',
+        endTime: '',
+        category_id: '',
+        category_name: ''
+      });
+      alert('Horario asignado correctamente');
+    } catch (err) {
+      console.error('Error al asignar horario:', err);
+      alert('Error al asignar horario: ' + (err.response?.data?.message || err.message));
     }
-    
-    // Reset form
-    setNewAssignment({
-      day: '',
-      timeSlot: '',
-      subject: '',
-      teacher: '',
-      startTime: '',
-      endTime: '',
-      category: ''
-    });
-    setShowAssignmentForm(false);
+  };
+
+  const normalizeTime = (time) => {
+    if (!time) return '';
+    return time.slice(0, 5).replace(/^0/, '');
   };
 
   return (
@@ -147,77 +181,107 @@ const SchedulePage = () => {
         <div className="schedule-section">
           <div className="schedule-header">
             <h1>StratSync - Horario</h1>
-            <button 
+            <button
               className="add-assignment-btn"
               onClick={() => setShowAssignmentForm(true)}
             >
               <FaPlus /> Asignar Horario
             </button>
           </div>
-          
-          <table className="schedule-table">
-            <thead>
-              <tr>
-                <th>Hora</th>
-                {days.map(day => (
-                  <th key={day}>{day}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {timeSlots.map(time => (
-                <tr key={time}>
-                  <td className="time-slot">{time}</td>
-                  {days.map(day => {
-                    const classItem = scheduleData.find(
-                      item => item.day === day && item.time === time
-                    );
-                    
-                    return (
-                      <td key={`${day}-${time}`}>
-                        {classItem ? (
-                          <div 
-                            className="scheduled-class"
-                            style={{ 
-                              backgroundColor: categoryColors[classItem.category] || '#F5F5F5'
-                            }}
-                          >
-                            <span className="subject">
-                              <FaBook /> {classItem.subject}
-                            </span>
-                            <br />
-                            <span className="teacher">
-                              <FaChalkboardTeacher /> {classItem.teacher}
-                            </span>
-                            <br />
-                            <span className="time">
-                              <FaCalendarAlt /> {classItem.time}
-                            </span>
-                          </div>
-                        ) : null}
-                      </td>
-                    );
-                  })}
+
+          {error && (
+            <div className="error-message">
+              {error}
+              <button onClick={loadData} className="retry-btn">Reintentar</button>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="loading-indicator">Cargando horarios...</div>
+          ) : (
+            <table className="schedule-table">
+              <thead>
+                <tr>
+                  <th>Hora</th>
+                  {days.map(day => (
+                    <th key={day}>{day}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {timeSlots.map(timeSlot => {
+                  const [start] = timeSlot.split(' - ');
+                  return (
+                    <tr key={timeSlot}>
+                      <td className="time-slot">{timeSlot}</td>
+                      {days.map(day => {
+                        return (
+                          <td key={`${day}-${timeSlot}`}>
+                            {scheduleData
+                              .filter(schedule => {
+                                try {
+                                  // Verificar día
+                                  const scheduleDay = days[schedule.dia_semana - 1];
+                                  if (scheduleDay !== day) return false;
+                                  
+                                  // Verificar hora
+                                  const scheduleStart = normalizeTime(schedule.hora_inicio);
+                                  return scheduleStart === start;
+                                } catch (error) {
+                                  console.error("Error en filtro:", schedule);
+                                  return false;
+                                }
+                              })
+                              .map(schedule => {
+                                const categoryId = getCategoryId(schedule);
+                                
+                                return (
+                                  <div
+                                    key={schedule.id}
+                                    className="scheduled-class"
+                                    style={{
+                                      backgroundColor: categoryId 
+                                        ? categoryColors[categoryId] || categoryColors.default 
+                                        : categoryColors.default
+                                    }}
+                                  >
+                                    <span className="subject">
+                                      <FaBook /> {getSubjectName(schedule)}
+                                    </span>
+                                    <br />
+                                    <span className="teacher">
+                                      <FaChalkboardTeacher /> {schedule.teacherName}
+                                    </span>
+                                    <br />
+                                    <span className="time">
+                                      <FaCalendarAlt /> 
+                                      {schedule.hora_inicio?.slice(0, 5) || '--:--'} - {schedule.hora_fin?.slice(0, 5) || '--:--'}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
 
-        {/* Modal para asignar horario */}
+        {/* Formulario modal */}
         {showAssignmentForm && (
           <div className="modal-overlay">
             <div className="modal-content">
               <div className="modal-header">
                 <h3>Asignar Nueva Clase</h3>
-                <button 
-                  className="close-btn"
-                  onClick={() => setShowAssignmentForm(false)}
-                >
+                <button className="close-btn" onClick={() => setShowAssignmentForm(false)}>
                   <FaTimes />
                 </button>
               </div>
-              
+
               <form onSubmit={handleSubmitAssignment}>
                 <div className="form-group">
                   <label>Día</label>
@@ -233,7 +297,7 @@ const SchedulePage = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="form-row">
                   <div className="form-group">
                     <label>Hora de inicio</label>
@@ -245,7 +309,6 @@ const SchedulePage = () => {
                       required
                     />
                   </div>
-                  
                   <div className="form-group">
                     <label>Hora de fin</label>
                     <input
@@ -257,60 +320,60 @@ const SchedulePage = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="form-group">
                   <label>Profesor</label>
                   <select
-                    name="teacher"
-                    value={newAssignment.teacher}
+                    name="teacher_id"
+                    value={newAssignment.teacher_id}
                     onChange={handleInputChange}
                     required
                   >
                     <option value="">Seleccionar profesor</option>
                     {teachers.map(teacher => (
-                      <option key={teacher.id} value={teacher.name}>{teacher.name}</option>
+                      <option key={teacher.id} value={teacher.id}>
+                        {teacher.nombres} {teacher.apellidos}
+                      </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="form-group">
                   <label>Materia</label>
                   <select
-                    name="subject"
-                    value={newAssignment.subject}
+                    name="subject_id"
+                    value={newAssignment.subject_id}
                     onChange={handleInputChange}
                     required
                   >
                     <option value="">Seleccionar materia</option>
                     {subjects.map(subject => (
-                      <option key={subject.id} value={subject.name}>{subject.name}</option>
+                      <option key={subject.id} value={subject.id}>
+                        {subject.nombre}
+                      </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="form-group">
                   <label>Categoría</label>
                   <input
                     type="text"
-                    name="category"
-                    value={newAssignment.category}
+                    value={newAssignment.category_name || 'Seleccione una materia'}
                     readOnly
                     className="read-only"
                   />
                 </div>
-                
+
                 <div className="form-actions">
-                  <button 
+                  <button
                     type="button"
                     className="cancel-btn"
                     onClick={() => setShowAssignmentForm(false)}
                   >
                     Cancelar
                   </button>
-                  <button 
-                    type="submit"
-                    className="submit-btn"
-                  >
+                  <button type="submit" className="submit-btn">
                     Asignar
                   </button>
                 </div>
@@ -318,6 +381,28 @@ const SchedulePage = () => {
             </div>
           </div>
         )}
+
+        {/* Sección de depuración para ver datos */}
+        <div className="debug-section" style={{ marginTop: '50px', padding: '20px', background: '#f0f0f0' }}>
+          <h3>Datos de Depuración</h3>
+          
+          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: '300px', marginRight: '20px' }}>
+              <h4>Horarios ({scheduleData.length})</h4>
+              <pre>{JSON.stringify(scheduleData.slice(0, 3), null, 2)}</pre>
+            </div>
+            
+            <div style={{ flex: 1, minWidth: '300px', marginRight: '20px' }}>
+              <h4>Profesores ({teachers.length})</h4>
+              <pre>{JSON.stringify(teachers.slice(0, 3), null, 2)}</pre>
+            </div>
+            
+            <div style={{ flex: 1, minWidth: '300px' }}>
+              <h4>Materias ({subjects.length})</h4>
+              <pre>{JSON.stringify(subjects.slice(0, 3), null, 2)}</pre>
+            </div>
+          </div>
+        </div>
       </div>
     </MainLayout>
   );

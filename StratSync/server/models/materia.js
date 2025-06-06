@@ -21,12 +21,13 @@ export default (sequelize, DataTypes) => {
     timestamps: false,
   });
 
-  Materia.associate = models => {
-    Materia.belongsTo(models.Categoria, {
-      foreignKey: 'categoria_id',
-      onDelete: 'SET NULL',
-    });
-  };
+ Materia.associate = (models) => {
+  Materia.belongsTo(models.Categoria, {
+    foreignKey: 'categoria_id',
+    as: 'categoria',
+    onDelete: 'SET NULL' // Añade esto para consistencia
+  });
+};
 
   return Materia;
 };

@@ -1,3 +1,4 @@
+// models/index.js
 import fs from 'fs';
 import path from 'path';
 import { Sequelize, DataTypes } from 'sequelize';
@@ -10,6 +11,7 @@ const __dirname = path.dirname(__filename);
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = configFile[env];
+
 const db = {};
 
 let sequelize;
@@ -20,8 +22,11 @@ if (config.use_env_variable) {
 }
 
 // Filtrar archivos modelo válidos (.js que no sean index.js)
-const files = fs.readdirSync(__dirname).filter(file =>
-  file.indexOf('.') !== 0 && file !== basename && file.slice(-3) === '.js'
+const files = fs.readdirSync(__dirname).filter(
+  (file) =>
+    file.indexOf('.') !== 0 &&
+    file !== basename &&
+    file.slice(-3) === '.js'
 );
 
 for (const file of files) {
@@ -37,6 +42,7 @@ for (const file of files) {
     }
 
     const model = modelFunc(sequelize, DataTypes);
+
     if (!model || !model.name) {
       console.error(`❌ El archivo "${file}" no retornó un modelo válido.`);
       continue;
@@ -49,8 +55,8 @@ for (const file of files) {
   }
 }
 
-// Si los modelos tienen relaciones definidas
-Object.keys(db).forEach(modelName => {
+// Ejecutar las asociaciones si existen
+Object.keys(db).forEach((modelName) => {
   if (typeof db[modelName].associate === 'function') {
     db[modelName].associate(db);
   }
@@ -62,4 +68,6 @@ db.Sequelize = Sequelize;
 console.log(`✅ ${Object.keys(db).length} modelos cargados exitosamente.`);
 
 export default db;
-export const { Materia, Categoria, Profesor } = db;
+
+// Exportar algunos modelos específicos para acceso directo
+export const { Materia, Categoria, Profesor, Horario } = db;

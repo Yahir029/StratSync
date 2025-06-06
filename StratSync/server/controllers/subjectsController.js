@@ -5,12 +5,36 @@ const { Materia, Categoria } = db;
 export const getAllSubjects = async (req, res) => {
   try {
     const materias = await Materia.findAll({
-      include: { model: Categoria, attributes: ['id', 'nombre'] },
+      include: [{
+        model: Categoria,
+        as: 'categoria',
+        attributes: ['id', 'nombre'] // Solo trae estos campos
+      }],
       order: [['id', 'ASC']],
+      raw: true,  // ← Cambia a true para datos planos
+      nest: true  // ← Convierte a estructura anidada
     });
-    res.json(materias);
+
+    // Formatea la respuesta para coincidir con tu frontend
+    const response = materias.map(m => ({
+      id: m.id,
+      nombre: m.nombre,
+      codigo: m.codigo,
+      descripcion: m.descripcion,
+      categoria_id: m.categoria_id,
+      Categorium: m.categoria ? {  // ← Usa el nombre que espera tu frontend
+        id: m.categoria.id,
+        nombre: m.categoria.nombre
+      } : null
+    }));
+
+    res.json(response);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener las materias', error });
+    console.error('Error:', error);
+    res.status(500).json({ 
+      message: 'Error al obtener materias',
+      error: error.message 
+    });
   }
 };
 

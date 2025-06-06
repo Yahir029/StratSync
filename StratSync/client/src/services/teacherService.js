@@ -24,14 +24,28 @@ export const createTeacher = async (teacherData) => {
 /**
  * Obtiene todos los profesores desde el backend.
  */
+// teacherService.js
 export const getTeachers = async () => {
-  const response = await fetch(API_URL);
-  if (!response.ok) {
-    throw new Error('Error al obtener los profesores');
-  }
-  return response.json();
-};
+  const [teachersRes, categoriesRes] = await Promise.all([
+    fetch(API_URL),
+    fetch('http://localhost:5000/api/categories')
+  ]);
 
+  if (!teachersRes.ok || !categoriesRes.ok) {
+    throw new Error('Error al obtener datos');
+  }
+
+  const [teachers, categories] = await Promise.all([
+    teachersRes.json(),
+    categoriesRes.json()
+  ]);
+
+  return teachers.map(teacher => ({
+    ...teacher,
+    categoria_nombre: categories.find(c => c.id === teacher.categoria_id)?.nombre || 'Sin asignar',
+    categoria_completa: categories.find(c => c.id === teacher.categoria_id) // Opcional
+  }));
+};
 /**
  * Actualiza un profesor por ID.
  * @param {number|string} id - ID del profesor a actualizar.
