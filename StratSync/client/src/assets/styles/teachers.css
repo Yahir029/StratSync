@@ -554,3 +554,14 @@ form {
 }
 
 /* ... (otros estilos se mantienen igual) ... */
+.sticky-actions {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  z-index: 5;
+}
