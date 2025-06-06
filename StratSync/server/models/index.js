@@ -62,3 +62,4 @@ db.Sequelize = Sequelize;
 console.log(`✅ ${Object.keys(db).length} modelos cargados exitosamente.`);
 
 export default db;
+export const { Materia, Categoria, Profesor } = db;

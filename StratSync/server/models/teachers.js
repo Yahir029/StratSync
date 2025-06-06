@@ -1,52 +1,63 @@
 // server/models/teacher.js
 
 export default (sequelize, DataTypes) => {
-  const Teacher = sequelize.define('profesores', {
+  const Teacher = sequelize.define('Teacher', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
     },
-    firstName: {
-      type: DataTypes.STRING,
+    nombres: {
+      type: DataTypes.STRING(50),
       allowNull: false
     },
-    lastName: {
-      type: DataTypes.STRING,
+    apellidos: {
+      type: DataTypes.STRING(50),
       allowNull: false
     },
-    email: {
-      type: DataTypes.STRING,
+    correo: {
+      type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
       validate: {
         isEmail: true
       }
     },
-    phone: {
-      type: DataTypes.STRING,
-      allowNull: true
+    telefono: {
+      type: DataTypes.STRING(20),
+      allowNull: false
     },
-    bio: {
+    biografia: {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    photoUrl: {
-      type: DataTypes.STRING,
+    categoria_id: {
+      type: DataTypes.INTEGER,
       allowNull: true
     },
-    category: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: 'Sin asignar'
+    foto_perfil: {
+      type: DataTypes.BLOB,
+      allowNull: true
     },
-    code: {
-      type: DataTypes.STRING,
+    codigo_acceso_maestro: {
+      type: DataTypes.STRING(20),
       allowNull: true,
       unique: true
+    },
+    activo: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
+    },
+    fecha_creacion: {
+      type: DataTypes.DATE,
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
+    },
+    creado_por: {
+      type: DataTypes.INTEGER,
+      allowNull: true
     }
   }, {
-    tableName: 'teachers',
+    tableName: 'profesores',
     timestamps: false
   });
 
