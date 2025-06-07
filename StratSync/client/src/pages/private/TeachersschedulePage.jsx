@@ -3,53 +3,68 @@ import Header from '../../components/layout/Header';
 import '../../assets/styles/dashboard.css'; 
 
 const mockSchedule = [
-  { profesor: "Juan Pérez", materia: "Matemáticas", dia: "Lunes", hora: "08:00 - 10:00", aula: "101" },
-  { profesor: "Ana García", materia: "Biología", dia: "Martes", hora: "10:00 - 12:00", aula: "102" },
-  { profesor: "Luis Martínez", materia: "Historia", dia: "Miércoles", hora: "12:00 - 14:00", aula: "103" },
+  { profesor: "Juan Pérez", materia: "Matemáticas", dia: "Lunes", horaInicio: "08:00", horaFin: "09:00", aula: "101" },
+  { profesor: "Ana García", materia: "Biología", dia: "Martes", horaInicio: "10:00", horaFin: "11:00", aula: "102" },
+  { profesor: "Luis Martínez", materia: "Historia", dia: "Miércoles", horaInicio: "12:00", horaFin: "13:00", aula: "103" },
 ];
 
 const TeachersschedulePage = () => {
   const [loading, setLoading] = useState(true);
+  const [horarios, setHorarios] = useState([]);
 
-    const timeSlots = [
-            '08:00 - 09:00',
-            '09:00 - 10:00',
-            '10:00 - 11:00',
-            '11:00 - 12:00',
-            '12:00 - 13:00',
-            '13:00 - 14:00',
-          ];
+  const timeSlots = [
+    '08:00 - 09:00',
+    '09:00 - 10:00',
+    '10:00 - 11:00',
+    '11:00 - 12:00',
+    '12:00 - 13:00',
+    '13:00 - 14:00',
+  ];
+
+  const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
   useEffect(() => {
-    // Si más adelante necesitas cargar datos, descomenta y ajusta:
-    // const loadData = async () => {
-    //   try {
-    //     const data = await fetchDashboardData();
-    //     setDashboardData(data);
-    //   } catch (error) {
-    //     console.error('Error loading dashboard data:', error);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
-    // loadData();
-
-    // Por ahora simulwamos que ya cargó:  
+          //  Aquí puedes reemplazar con fetch real si usas backend/API
+    setHorarios(mockSchedule);
     setLoading(false);
+
+                      //        useEffect(() => {                    ------  PARA UNA LLAMADA A API  -------------
+                    //  fetch('/api/horarios-profesores')  // Ruta hacia tu backend o API
+                      //  .then((res) => {
+                       //   if (!res.ok) {
+                          //  throw new Error('Error al obtener los horarios');
+                       //   }
+                        //  return res.json();
+                      //  })
+                      //  .then((data) => setHorarios(data))
+                      //  .catch((err) => {
+                        //  console.error('Error en la petición:', err);
+                      //  });
+                  //  }, []);
+
   }, []);
 
-    return (
+  // Función para encontrar materia en cada celda
+  const getClase = (dia, slot) => {
+    const [inicio, fin] = slot.split(' - ');
+    const clase = horarios.find(
+      (h) =>
+        h.dia === dia &&
+        h.horaInicio === inicio &&
+        h.horaFin === fin
+    );
+    return clase ? `${clase.materia} (${clase.profesor})` : '';
+  };
+
+  return (
     <div className="teachers-schedule-page w-full pt-30">
-      {/* Header */}
       <Header />
 
-      {/* Título */}
       <div className="dashboard-header">
         <h1 className="text-2xl font-bold mb-1">Welcome to StratSync</h1>
         <p className="text-gray-700">Sistema de gestión académica y horarios</p>
       </div>
 
-      {/* Contenido */}
       <div className="schedule-section">
         {loading ? (
           <div className="loading-container">
@@ -63,23 +78,18 @@ const TeachersschedulePage = () => {
               <thead>
                 <tr>
                   <th>Horario</th>
-                  <th>Lunes</th>
-                  <th>Martes</th>
-                  <th>Miércoles</th>
-                  <th>Jueves</th>
-                  <th>Viernes</th>
+                  {dias.map((dia) => (
+                    <th key={dia}>{dia}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {/* Aquí deberías generar filas por horario */}
-                {timeSlots.map((timeSlot, index) => (
+                {timeSlots.map((slot, index) => (
                   <tr key={index}>
-                    <td>{timeSlot}</td>
-                    <td>{/* Clase del lunes en ese horario */}</td>
-                    <td>{/* Clase del martes en ese horario */}</td>
-                    <td>{/* Clase del miércoles en ese horario */}</td>
-                    <td>{/* Clase del jueves en ese horario */}</td>
-                    <td>{/* Clase del viernes en ese horario */}</td>
+                    <td>{slot}</td>
+                    {dias.map((dia) => (
+                      <td key={dia}>{getClase(dia, slot)}</td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
