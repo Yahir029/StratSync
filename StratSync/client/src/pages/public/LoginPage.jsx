@@ -1,41 +1,62 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import LoginForm from '../../components/auth/LoginForm';
-import '../../assets/styles/auth.css';
+import stratSyncLogo from '../../assets/images/strat-sync-logo.png';
+import styles from '../../assets/styles/Login.module.css';
 
 const LoginPage = () => {
+  const [username, setUsername] = useState('');
+  const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState('');
 
-  const handleLogin = async (username) => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
     try {
       await login(username);
+      navigate('/dashboard');
     } catch (err) {
       setError('Credenciales inválidas. Por favor intente nuevamente.');
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
+    <div className={styles.container}>
+      <div className={styles.card}>
         <img 
-          src="StratSync/client/assets/images/strat-sync-logo.png" 
+          src={stratSyncLogo} 
           alt="StratSync Logo" 
-          className="auth-logo"
+          className={styles.logo}
         />
-        <h1 className="auth-title">Código de Acceso</h1>
         
-        <LoginForm onSubmit={handleLogin} />
+        <h1 className={styles.title}>Código de Acceso Maestro</h1>
         
-        {error && <p className="auth-error">{error}</p>}
+        <form onSubmit={handleLogin} className={styles.form}>
+          <div className={styles.inputGroup}>
+            <label htmlFor="username"></label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className={styles.input}
+              required
+              placeholder="Ingrese su codigo"
+            />
+          </div>
+          
+          <button type="submit" className={styles.button}>
+            Ingresar
+          </button>
+        </form>
+        
+        {error && <p className={styles.error}>{error}</p>}
         
         <button 
-          className="auth-switch-btn"
+          className={styles.switchButton}
           onClick={() => navigate('/admin-login')}
         >
-          Modo Administrador
+          ¿Eres administrador? Accede aquí
         </button>
       </div>
     </div>

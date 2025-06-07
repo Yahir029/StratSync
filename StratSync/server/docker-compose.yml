@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: stratsync_db
+    environment:
+      POSTGRES_DB: stratsync
+      POSTGRES_USER: stratsync_user
+      POSTGRES_PASSWORD: stratDBconect01$
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
