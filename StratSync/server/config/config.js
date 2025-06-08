@@ -1,29 +1,38 @@
-// server/config/config.js
-/*
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
-module.exports = {
+const config = {
   development: {
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
+    port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
     logging: false,
-  }
-};
-*/
-const config = {
-  development: {
-   username: 'stratsync_user',
-    password: 'stratDBconect01$',
-    database: 'stratsync',
-    host: 'localhost',
-    dialect: 'postgres',
-    // otros campos opcionales como logging, port, etc.
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    }
   },
-  // otros entornos si los necesitas
+  production: {
+    // Puedes copiar la misma config si usas un solo entorno
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 5432,
+    dialect: 'postgres',
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    }
+  }
 };
 
 export default config;
