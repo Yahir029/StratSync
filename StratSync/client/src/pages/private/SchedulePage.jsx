@@ -1,21 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import {
-  FaPlus, FaTimes, FaCalendarAlt, FaChalkboardTeacher, FaBook
+  FaPlus, FaTimes, FaCalendarAlt, FaChalkboardTeacher, FaBook, FaEdit, FaTrash
 } from 'react-icons/fa';
 import { useCategories } from '../../context/CategoriesContext';
 import {
   getAllSchedules,
-  createSchedule
+  createSchedule,
+  updateSchedule,
+  deleteSchedule
 } from '../../services/scheduleService';
 import { getTeachers } from '../../services/teacherService';
 import { getAllSubjects } from '../../services/subjectsService';
 import '../../assets/styles/dashboard.css';
 
 const SchedulePage = () => {
-  const { categories } = useCategories();
+  const { categoriesObj: categories, loading: categoriesLoading } = useCategories();
 
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
+  const [editingScheduleId, setEditingScheduleId] = useState(null);
   const [scheduleData, setScheduleData] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -29,14 +32,25 @@ const SchedulePage = () => {
     startTime: '',
     endTime: '',
     category_id: '',
-    category_name: '' // Nuevo campo para el nombre de la categoría
+    category_name: ''
   });
 
   const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-  const timeSlots = [
-    '7:00 - 8:00', '8:00 - 9:00', '9:00 - 10:00',
-    '10:00 - 11:00', '11:00 - 12:00', '12:00 - 13:00'
-  ];
+  
+  // Generar franjas horarias cada 60 minutos
+  const timeSlots = useMemo(() => {
+    const slots = [];
+    for (let hour = 7; hour <= 20; hour++) {
+      const startHour = hour.toString().padStart(2, '0');
+      const endHour = (hour + 1).toString().padStart(2, '0');
+      slots.push({
+        start: `${startHour}:00`,
+        end: `${endHour}:00`,
+        display: `${startHour}:00 - ${endHour}:00`
+      });
+    }
+    return slots;
+  }, []);
 
   const categoryColors = {
     1: '#FFB7B2',   // Idiomas
@@ -59,30 +73,36 @@ const SchedulePage = () => {
         getTeachers(),
         getAllSubjects()
       ]);
-      
-      // Verificar estructuras de respuesta
-      const schedules = Array.isArray(scheduleRes?.data) 
-        ? scheduleRes.data 
+
+      const schedules = Array.isArray(scheduleRes?.data)
+        ? scheduleRes.data
         : Array.isArray(scheduleRes) ? scheduleRes : [];
-      
-      const teachersData = Array.isArray(teacherRes?.data) 
-        ? teacherRes.data 
+
+      const teachersData = Array.isArray(teacherRes?.data)
+        ? teacherRes.data
         : Array.isArray(teacherRes) ? teacherRes : [];
-      
-      const subjectsData = Array.isArray(subjectRes?.data) 
-        ? subjectRes.data 
+
+      let subjectsData = Array.isArray(subjectRes?.data)
+        ? subjectRes.data
         : Array.isArray(subjectRes) ? subjectRes : [];
 
-      // Combinar datos de profesores con horarios
+      // Normalizar el campo de categoría en las materias
+      subjectsData = subjectsData.map(subject => ({
+        ...subject,
+        categoria_id: subject.categoria_id || subject.category_id || null
+      }));
+
+      // Añadir teacherName para cada horario
       const schedulesWithTeacherNames = schedules.map(schedule => {
-        // Buscar profesor por ID
         const teacher = teachersData.find(t => t.id === schedule.profesor?.id);
-        
         return {
           ...schedule,
-          teacherName: teacher 
-            ? `${teacher.nombres} ${teacher.apellidos}` 
-            : 'Profesor no disponible'
+          teacherName: teacher
+            ? `${teacher.nombres} ${teacher.apellidos}`
+            : 'Profesor no disponible',
+          // Normalizar horas
+          hora_inicio: schedule.hora_inicio?.replace(/:00$/, '') || schedule.hora_inicio,
+          hora_fin: schedule.hora_fin?.replace(/:00$/, '') || schedule.hora_fin
         };
       });
 
@@ -103,33 +123,37 @@ const SchedulePage = () => {
   };
 
   const getCategoryId = (schedule) => {
-    return schedule.materia?.categoria_id || null;
+    return schedule.materia?.categoria?.id || schedule.materia?.categoria_id || null;
+  };
+
+  const getCategoryName = (categoryId) => {
+    if (!categoryId || categoriesLoading || !categories) return 'Sin categoría';
+    const category = categories.find(cat => cat.id == categoryId);
+    return category ? category.nombre : 'Sin categoría';
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    // Actualizar categoría automáticamente cuando se selecciona una materia
+
     if (name === 'subject_id') {
       const selectedSubject = subjects.find(s => s.id == value);
-      
+
       if (selectedSubject) {
-        // Buscar el nombre de la categoría
-        const category = categories.find(cat => cat.id == selectedSubject.categoria_id);
-        const categoryName = category ? category.nombre : 'Sin categoría';
-        
+        const categoryId = selectedSubject.categoria_id || selectedSubject.category_id;
+        const categoryName = getCategoryName(categoryId);
+
         setNewAssignment(prev => ({
           ...prev,
           [name]: value,
-          category_id: selectedSubject.categoria_id || '',
-          category_name: categoryName // Actualizar el nombre de la categoría
+          category_id: categoryId || '',
+          category_name: categoryName
         }));
       } else {
         setNewAssignment(prev => ({
           ...prev,
           [name]: value,
           category_id: '',
-          category_name: ''
+          category_name: 'Seleccione una materia'
         }));
       }
     } else {
@@ -137,23 +161,57 @@ const SchedulePage = () => {
     }
   };
 
+  const formatTimeForBackend = (time) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':');
+    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:00`;
+  };
+
   const handleSubmitAssignment = async (e) => {
     e.preventDefault();
-
+    setError('');
+    
     try {
-      const formatTime = (time) => time ? `${time}:00` : '';
-      
+      // Validación de campos requeridos
+      if (!newAssignment.day || !newAssignment.subject_id || !newAssignment.teacher_id ||
+          !newAssignment.startTime || !newAssignment.endTime) {
+        alert('Por favor complete todos los campos requeridos');
+        return;
+      }
+
+      // Convertir día de la semana a número (1-7)
+      const dayNumber = days.indexOf(newAssignment.day) + 1;
+      if (dayNumber < 1 || dayNumber > 7) {
+        alert('Día de la semana inválido');
+        return;
+      }
+
       const newSchedule = {
-        dia_semana: days.indexOf(newAssignment.day) + 1,
-        hora_inicio: formatTime(newAssignment.startTime),
-        hora_fin: formatTime(newAssignment.endTime),
-        materia_id: newAssignment.subject_id,
-        profesor_id: newAssignment.teacher_id
+        dia_semana: dayNumber,
+        hora_inicio: formatTimeForBackend(newAssignment.startTime),
+        hora_fin: formatTimeForBackend(newAssignment.endTime),
+        materia_id: parseInt(newAssignment.subject_id),
+        profesor_id: parseInt(newAssignment.teacher_id)
       };
 
-      await createSchedule(newSchedule);
+      // Validar que la hora de fin sea mayor que la de inicio
+      if (newSchedule.hora_fin <= newSchedule.hora_inicio) {
+        alert('La hora de fin debe ser posterior a la hora de inicio');
+        return;
+      }
+
+      // Llamada al servicio para crear o actualizar el horario
+      let response;
+      if (editingScheduleId) {
+        response = await updateSchedule(editingScheduleId, newSchedule);
+      } else {
+        response = await createSchedule(newSchedule);
+      }
+
+      // Recargar datos y resetear formulario
       await loadData();
       setShowAssignmentForm(false);
+      setEditingScheduleId(null);
       setNewAssignment({
         day: '',
         subject_id: '',
@@ -163,17 +221,159 @@ const SchedulePage = () => {
         category_id: '',
         category_name: ''
       });
-      alert('Horario asignado correctamente');
+
+      alert(editingScheduleId 
+        ? 'Horario actualizado correctamente' 
+        : 'Horario creado correctamente');
     } catch (err) {
-      console.error('Error al asignar horario:', err);
-      alert('Error al asignar horario: ' + (err.response?.data?.message || err.message));
+      console.error('Error al guardar horario:', err);
+      alert(`Error: ${err.response?.data?.error || err.message || 'Error desconocido'}`);
     }
   };
 
   const normalizeTime = (time) => {
     if (!time) return '';
-    return time.slice(0, 5).replace(/^0/, '');
+    const [hours, minutes] = time.split(':');
+    return `${hours}:${minutes ? minutes.padStart(2, '0').slice(0, 2) : '00'}`;
   };
+
+  const closeModal = () => {
+    setShowAssignmentForm(false);
+    setEditingScheduleId(null);
+    setNewAssignment({
+      day: '',
+      subject_id: '',
+      teacher_id: '',
+      startTime: '',
+      endTime: '',
+      category_id: '',
+      category_name: ''
+    });
+  };
+
+  const handleEditSchedule = (schedule) => {
+    setEditingScheduleId(schedule.id);
+    setNewAssignment({
+      day: days[schedule.dia_semana - 1] || '',
+      subject_id: schedule.materia?.id || '',
+      teacher_id: schedule.profesor?.id || '',
+      startTime: normalizeTime(schedule.hora_inicio),
+      endTime: normalizeTime(schedule.hora_fin),
+      category_id: getCategoryId(schedule),
+      category_name: getCategoryName(getCategoryId(schedule))
+    });
+    setShowAssignmentForm(true);
+  };
+
+  const handleDeleteSchedule = async (id) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este horario?')) {
+      try {
+        await deleteSchedule(id);
+        await loadData();
+        alert('Horario eliminado correctamente');
+      } catch (err) {
+        console.error('Error al eliminar horario:', err);
+        alert(`Error: ${err.response?.data?.error || err.message || 'Error al eliminar'}`);
+      }
+    }
+  };
+
+  // Convertir tiempo a minutos para comparaciones
+  const convertToMinutes = (time) => {
+    if (!time) return 0;
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + (minutes || 0);
+  };
+
+  // Agrupar horarios continuos
+  const groupedSchedules = useMemo(() => {
+    const groups = [];
+    
+    // Crear matriz de días x franjas horarias
+    const daySlots = days.map(() => 
+      timeSlots.map(() => [])
+    );
+    
+    // Asignar horarios a sus celdas correspondientes
+    scheduleData.forEach(schedule => {
+      const dayIndex = schedule.dia_semana - 1;
+      if (dayIndex < 0 || dayIndex >= days.length) return;
+      
+      const startMinutes = convertToMinutes(schedule.hora_inicio);
+      const endMinutes = convertToMinutes(schedule.hora_fin);
+      
+      for (let i = 0; i < timeSlots.length; i++) {
+        const slotStart = convertToMinutes(timeSlots[i].start);
+        const slotEnd = convertToMinutes(timeSlots[i].end);
+        
+        if (startMinutes < slotEnd && endMinutes > slotStart) {
+          daySlots[dayIndex][i].push(schedule);
+        }
+      }
+    });
+    
+    // Agrupar horarios continuos
+    days.forEach((day, dayIndex) => {
+      let currentGroup = null;
+      
+      timeSlots.forEach((slot, slotIndex) => {
+        const schedules = daySlots[dayIndex][slotIndex];
+        
+        if (schedules.length > 0) {
+          const schedule = schedules[0];
+          
+          if (!currentGroup) {
+            // Comenzar nuevo grupo
+            currentGroup = {
+              schedule,
+              startSlot: slotIndex,
+              endSlot: slotIndex,
+              rowSpan: 1
+            };
+          } else if (currentGroup.schedule.id === schedule.id) {
+            // Extender grupo existente
+            currentGroup.endSlot = slotIndex;
+            currentGroup.rowSpan++;
+          } else {
+            // Guardar grupo actual y comenzar nuevo
+            groups.push(currentGroup);
+            currentGroup = {
+              schedule,
+              startSlot: slotIndex,
+              endSlot: slotIndex,
+              rowSpan: 1
+            };
+          }
+        } else if (currentGroup) {
+          // Finalizar grupo actual
+          groups.push(currentGroup);
+          currentGroup = null;
+        }
+      });
+      
+      // Agregar el último grupo del día
+      if (currentGroup) {
+        groups.push(currentGroup);
+      }
+    });
+    
+    return groups;
+  }, [scheduleData, timeSlots, days]);
+
+  // Crear matriz de celdas ocupadas
+  const occupiedCells = useMemo(() => {
+    const occupied = Array(days.length)
+      .fill()
+      .map(() => Array(timeSlots.length).fill(false));
+    
+    groupedSchedules.forEach(group => {
+      for (let i = group.startSlot; i <= group.endSlot; i++) {
+        occupied[group.schedule.dia_semana - 1][i] = true;
+      }
+    });
+    
+    return occupied;
+  }, [groupedSchedules, days, timeSlots]);
 
   return (
     <MainLayout>
@@ -183,7 +383,10 @@ const SchedulePage = () => {
             <h1>StratSync - Horario</h1>
             <button
               className="add-assignment-btn"
-              onClick={() => setShowAssignmentForm(true)}
+              onClick={() => {
+                setEditingScheduleId(null);
+                setShowAssignmentForm(true);
+              }}
             >
               <FaPlus /> Asignar Horario
             </button>
@@ -199,85 +402,110 @@ const SchedulePage = () => {
           {loading ? (
             <div className="loading-indicator">Cargando horarios...</div>
           ) : (
-            <table className="schedule-table">
-              <thead>
-                <tr>
-                  <th>Hora</th>
-                  {days.map(day => (
-                    <th key={day}>{day}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {timeSlots.map(timeSlot => {
-                  const [start] = timeSlot.split(' - ');
-                  return (
-                    <tr key={timeSlot}>
-                      <td className="time-slot">{timeSlot}</td>
-                      {days.map(day => {
-                        return (
-                          <td key={`${day}-${timeSlot}`}>
-                            {scheduleData
-                              .filter(schedule => {
-                                try {
-                                  // Verificar día
-                                  const scheduleDay = days[schedule.dia_semana - 1];
-                                  if (scheduleDay !== day) return false;
-                                  
-                                  // Verificar hora
-                                  const scheduleStart = normalizeTime(schedule.hora_inicio);
-                                  return scheduleStart === start;
-                                } catch (error) {
-                                  console.error("Error en filtro:", schedule);
-                                  return false;
-                                }
-                              })
-                              .map(schedule => {
-                                const categoryId = getCategoryId(schedule);
-                                
-                                return (
-                                  <div
-                                    key={schedule.id}
-                                    className="scheduled-class"
-                                    style={{
-                                      backgroundColor: categoryId 
-                                        ? categoryColors[categoryId] || categoryColors.default 
-                                        : categoryColors.default
-                                    }}
-                                  >
-                                    <span className="subject">
-                                      <FaBook /> {getSubjectName(schedule)}
-                                    </span>
-                                    <br />
-                                    <span className="teacher">
-                                      <FaChalkboardTeacher /> {schedule.teacherName}
-                                    </span>
-                                    <br />
-                                    <span className="time">
-                                      <FaCalendarAlt /> 
-                                      {schedule.hora_inicio?.slice(0, 5) || '--:--'} - {schedule.hora_fin?.slice(0, 5) || '--:--'}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                          </td>
+            <div className="schedule-table-container">
+              <table className="schedule-table">
+                <thead>
+                  <tr>
+                    <th>Hora</th>
+                    {days.map(day => (
+                      <th key={day}>{day}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {timeSlots.map((timeSlot, rowIndex) => (
+                    <tr key={`${timeSlot.start}-${timeSlot.end}`}>
+                      <td className="time-slot">{timeSlot.display}</td>
+                      {days.map((day, dayIndex) => {
+                        const group = groupedSchedules.find(g => 
+                          g.schedule.dia_semana - 1 === dayIndex && 
+                          g.startSlot === rowIndex
                         );
+                        
+                        const isOccupied = occupiedCells[dayIndex][rowIndex];
+                        const isGroupStart = group && group.startSlot === rowIndex;
+                        
+                        if (isGroupStart) {
+                          const categoryId = getCategoryId(group.schedule);
+                          const categoryName = getCategoryName(categoryId);
+                          
+                          return (
+                            <td 
+                              key={`${day}-${rowIndex}`} 
+                              className="schedule-cell"
+                              rowSpan={group.rowSpan}
+                              style={{
+                                backgroundColor: categoryId
+                                  ? categoryColors[categoryId] || categoryColors.default
+                                  : categoryColors.default
+                              }}
+                            >
+                              <div className="scheduled-class">
+                                <div className="schedule-header">
+                                  <span className="subject">
+                                    <FaBook /> {getSubjectName(group.schedule)}
+                                  </span>
+                                  <div className="schedule-actions">
+                                    <button 
+                                      className="edit-btn"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditSchedule(group.schedule);
+                                      }}
+                                    >
+                                      <FaEdit />
+                                    </button>
+                                    <button 
+                                      className="delete-btn"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteSchedule(group.schedule.id);
+                                      }}
+                                    >
+                                      <FaTrash />
+                                    </button>
+                                  </div>
+                                </div>
+                                <span className="teacher">
+                                  <FaChalkboardTeacher /> {group.schedule.teacherName}
+                                </span>
+                                <span className="time">
+                                  <FaCalendarAlt />
+                                  {normalizeTime(group.schedule.hora_inicio) || '--:--'} - {normalizeTime(group.schedule.hora_fin) || '--:--'}
+                                </span>
+                                {categoryName && (
+                                  <span className="category">
+                                    {categoryName}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        }
+                        
+                        if (!isOccupied) {
+                          return (
+                            <td key={`${day}-${rowIndex}`} className="schedule-cell"></td>
+                          );
+                        }
+                        
+                        // Celda ocupada pero no es inicio de grupo (omitir)
+                        return null;
                       })}
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
-        {/* Formulario modal */}
         {showAssignmentForm && (
           <div className="modal-overlay">
             <div className="modal-content">
               <div className="modal-header">
-                <h3>Asignar Nueva Clase</h3>
-                <button className="close-btn" onClick={() => setShowAssignmentForm(false)}>
+                <h3>{editingScheduleId ? 'Editar Horario' : 'Asignar Nueva Clase'}</h3>
+                <button className="close-btn" onClick={closeModal}>
                   <FaTimes />
                 </button>
               </div>
@@ -316,6 +544,7 @@ const SchedulePage = () => {
                       name="endTime"
                       value={newAssignment.endTime}
                       onChange={handleInputChange}
+                      min={newAssignment.startTime}
                       required
                     />
                   </div>
@@ -355,54 +584,25 @@ const SchedulePage = () => {
                   </select>
                 </div>
 
-                <div className="form-group">
-                  <label>Categoría</label>
-                  <input
-                    type="text"
-                    value={newAssignment.category_name || 'Seleccione una materia'}
-                    readOnly
-                    className="read-only"
-                  />
+                <div className="form-group category-display">
+                  <label>Categoría:</label>
+                  <span className="category-name">
+                    {newAssignment.category_name || 'Seleccione una materia'}
+                  </span>
                 </div>
 
                 <div className="form-actions">
-                  <button
-                    type="button"
-                    className="cancel-btn"
-                    onClick={() => setShowAssignmentForm(false)}
-                  >
-                    Cancelar
+                  <button type="submit" className="btn-primary">
+                    {editingScheduleId ? 'Actualizar' : 'Asignar'}
                   </button>
-                  <button type="submit" className="submit-btn">
-                    Asignar
+                  <button type="button" className="btn-secondary" onClick={closeModal}>
+                    Cancelar
                   </button>
                 </div>
               </form>
             </div>
           </div>
         )}
-
-        {/* Sección de depuración para ver datos */}
-        <div className="debug-section" style={{ marginTop: '50px', padding: '20px', background: '#f0f0f0' }}>
-          <h3>Datos de Depuración</h3>
-          
-          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '300px', marginRight: '20px' }}>
-              <h4>Horarios ({scheduleData.length})</h4>
-              <pre>{JSON.stringify(scheduleData.slice(0, 3), null, 2)}</pre>
-            </div>
-            
-            <div style={{ flex: 1, minWidth: '300px', marginRight: '20px' }}>
-              <h4>Profesores ({teachers.length})</h4>
-              <pre>{JSON.stringify(teachers.slice(0, 3), null, 2)}</pre>
-            </div>
-            
-            <div style={{ flex: 1, minWidth: '300px' }}>
-              <h4>Materias ({subjects.length})</h4>
-              <pre>{JSON.stringify(subjects.slice(0, 3), null, 2)}</pre>
-            </div>
-          </div>
-        </div>
       </div>
     </MainLayout>
   );
