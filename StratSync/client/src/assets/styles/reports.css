@@ -1,0 +1,17 @@
+.reports-container {
+  padding: 2rem;
+}
+
+.lista-horarios {
+  margin-bottom: 1rem;
+}
+
+.horario-item {
+  margin-bottom: 0.5rem;
+}
+
+.preview-item {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin-top: 1rem;
+}
