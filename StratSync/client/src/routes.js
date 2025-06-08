@@ -11,6 +11,7 @@ const SubjectsPage = lazy(() => import('./pages/private/SubjectsPage'));
 const TeachersPage = lazy(() => import('./pages/private/TeachersPage'));
 const SchedulePage = lazy(() => import('./pages/private/SchedulePage'));
 const ReportsPage = lazy(() => import('./pages/private/ReportsPage'));
+const TeachersschedulePage = lazy(() => import('./pages/private/TeachersschedulePage'));
 
 const PrivateRoute = ({ children, adminOnly = false }) => {
   const { isAuthenticated, isAdmin } = useAuth();
@@ -75,6 +76,16 @@ const AppRoutes = () => {
         />
 
         {/* Rutas privadas */}
+
+        <Route 
+          path="/Teachersschedule" 
+          element={
+            <PrivateRoute>
+              <TeachersschedulePage />
+            </PrivateRoute>
+          } 
+        />  
+
         <Route 
           path="/dashboard" 
           element={

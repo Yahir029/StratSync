@@ -14,7 +14,7 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       await login(username);
-      navigate('/dashboard');
+      navigate('/Teachersschedule');
     } catch (err) {
       setError('Credenciales inválidas. Por favor intente nuevamente.');
     }
