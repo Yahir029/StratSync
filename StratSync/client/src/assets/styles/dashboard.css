@@ -243,3 +243,6 @@
   cursor: pointer;
 }
 
+.teachers-schedule-page {
+  padding-top: 96px; /* o lo que mida tu Header */
+}

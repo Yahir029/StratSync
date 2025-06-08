@@ -83,8 +83,83 @@ const SubjectsPage = () => {
   const uncategorized = subjects.filter((s) => !s.categoria_id);
 
   return (
+<<<<<<< HEAD
     <div className="subjects-container">
       <h2>Gestión de Materias</h2>
+=======
+    <MainLayout>
+      <div className="subjects-container" className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
+        <h1>StratSync - Gestión de Materias</h1>
+        
+        <div className="main-content">
+          {/* Menú lateral de categorías */}
+          <div className="categories-sidebar">
+            <h2>Categorías</h2>
+            <ul>
+              {categories.map(category => (
+                <li 
+                  key={category}
+                  className={selectedCategory === category ? 'active' : ''}
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    setSelectedSubjects([]);
+                  }}
+                >
+                  {category === 'Todos' && <FaList className="category-icon" />}
+                  {category === 'Sin asignar' && <FaQuestionCircle className="category-icon" />}
+                  {category}
+                  
+                  {/* Botón para eliminar categoría */}
+                  {!['Todos', 'Sin asignar'].includes(category) && (
+                    <button 
+                      className="delete-category-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteCategory(category);
+                      }}
+                    >
+                      <FaTimes />
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+            
+            {/* Formulario para nueva categoría */}
+            {showCategoryForm ? (
+              <div className="add-category-form">
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Nombre de categoría"
+                  className="category-input"
+                />
+                <div className="category-form-actions">
+                  <button 
+                    onClick={handleAddCategory}
+                    className="confirm-add-category"
+                  >
+                    <FaCheck /> Añadir
+                  </button>
+                  <button 
+                    onClick={() => setShowCategoryForm(false)}
+                    className="cancel-add-category"
+                  >
+                    <FaTimes /> Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button 
+                className="add-category-btn"
+                onClick={() => setShowCategoryForm(true)}
+              >
+                <FaPlus /> Nueva categoría
+              </button>
+            )}
+          </div>
+>>>>>>> feature/dashboard-teacher
 
       <form className="subject-form" onSubmit={handleSubmit}>
         <input
