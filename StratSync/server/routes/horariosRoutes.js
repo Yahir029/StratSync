@@ -4,6 +4,7 @@ import horariosController from '../controllers/horariosController.js';
 const router = express.Router();
 
 router.get('/', horariosController.getHorarios);
+router.get('/maestro/:id', horariosController.getHorariosByMaestro);
 router.post('/', horariosController.createHorario);
 router.put('/:id', horariosController.updateHorario); // 👈 nueva ruta
 router.delete('/:id', horariosController.deleteHorario);

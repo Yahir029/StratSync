@@ -183,8 +183,61 @@ const deleteHorario = async (req, res) => {
   }
 };
 
+const getHorariosByMaestro = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const horarios = await Horario.findAll({
+      where: { profesor_id: id },
+      include: [
+        {
+          model: Teacher,
+          as: 'profesor',
+          attributes: ['id', 'nombres', 'apellidos']
+        },
+        {
+          model: Materia,
+          as: 'materia',
+          attributes: ['id', 'nombre'],
+          include: [{
+            model: Categoria,
+            as: 'categoria',
+            attributes: ['id', 'nombre']
+          }]
+        }
+      ]
+    });
+
+    const formateado = horarios.map(h => ({
+      id: h.id,
+      dia_semana: h.dia_semana,
+      hora_inicio: h.hora_inicio,
+      hora_fin: h.hora_fin,
+      profesor: {
+        id: h.profesor.id,
+        nombre: `${h.profesor.nombres} ${h.profesor.apellidos}`
+      },
+      materia: {
+        id: h.materia.id,
+        nombre: h.materia.nombre,
+        categoria_id: h.materia.categoria_id,
+        categoria: h.materia.categoria ? {
+          id: h.materia.categoria.id,
+          nombre: h.materia.categoria.nombre
+        } : null
+      }
+    }));
+
+    res.json(formateado);
+  } catch (error) {
+    console.error('Error al obtener horarios del maestro:', error);
+    res.status(500).json({ error: 'Error al obtener horarios del maestro.' });
+  }
+};
+
 export default {
   getHorarios,
+  getHorariosByMaestro, // 👈 Agregado aquí
   createHorario,
   updateHorario,
   deleteHorario
