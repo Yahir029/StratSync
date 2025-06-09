@@ -29,7 +29,7 @@ module.exports = {
 
 
 // config.js
-const app = require('./app.js');
+import app from '../app.js';
 const sequelize = require('./config/db.js');
 
 async function startServer() {
