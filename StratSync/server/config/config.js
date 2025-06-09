@@ -29,21 +29,35 @@ module.exports = {
 
 
 // config.js
-import app from '../app.js';
-import sequelize from './db.js'; // Ajusta la ruta si es necesario
+//import app from '../app.js';
+//import sequelize from './db.js'; // Ajusta la ruta si es necesario
 
-async function startServer() {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ Conectado correctamente a la base de datos Render');
+//async function startServer() {
+  //try {
+    //await sequelize.authenticate();
+    //console.log('✅ Conectado correctamente a la base de datos Render');
 
-    app.listen(5000, '0.0.0.0', () => {
-      console.log('🚀 Servidor escuchando en el puerto 5000');
-    });
-  } catch (error) {
-    console.error('❌ Error al conectar con la base de datos:', error);
-    process.exit(1);
-  }
-}
+    //app.listen(5000, '0.0.0.0', () => {
+      //console.log('🚀 Servidor escuchando en el puerto 5000');
+    //});
+  //} catch (error) {
+    //console.error('❌ Error al conectar con la base de datos:', error);
+    //process.exit(1);
+  //}
+//}
 
-startServer();
+//startServer();
+
+
+// config/config.js
+const config = {
+  development: {
+    username: 'stratsync_user',
+    password: 'stratDBconect01$',
+    database: 'stratsync',
+    host: 'localhost',
+    dialect: 'postgres',
+  },
+};
+
+export default config;

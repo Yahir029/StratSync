@@ -2,8 +2,9 @@
 import fs from 'fs';
 import path from 'path';
 import { Sequelize, DataTypes } from 'sequelize';
-import configFile from '../config/config.js';
+import config from '../config/config.js'; // <- Asegúrate de que config.js tenga `export default`
 import { fileURLToPath, pathToFileURL } from 'url';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
