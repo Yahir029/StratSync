@@ -48,7 +48,6 @@ module.exports = {
 
 //startServer();
 
-
 const config = {
   development: {
     username: 'stratsync_user',
