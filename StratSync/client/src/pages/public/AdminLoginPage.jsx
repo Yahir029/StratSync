@@ -1,41 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import LoginForm from '../../components/auth/LoginForm';
-import '../../assets/styles/auth.css';
+import { FaLock, FaUser } from 'react-icons/fa';
+import styles from '../../assets/styles/Login.module.css';
+import stratSyncLogo from '../../assets/images/strat-sync-logo.png';
 
 const AdminLoginPage = () => {
-  const { adminLogin } = useAuth();
+  const { adminLogin, adminAttempts } = useAuth();
   const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isTimeout, setIsTimeout] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleAdminLogin = async (username, password) => {
+  useEffect(() => {
+    if (adminAttempts >= 3) {
+      setIsTimeout(true);
+      const timer = setTimeout(() => {
+        setIsTimeout(false);
+      }, 300000); // 5 minutos
+      return () => clearTimeout(timer);
+    }
+  }, [adminAttempts]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isTimeout) return;
+
+    setIsLoading(true);
+    setError('');
+
     try {
       await adminLogin(username, password);
     } catch (err) {
-      setError('Credenciales de administrador inválidas');
+      if (err.message.includes('CORS') || err.message.includes('Failed to fetch')) {
+        setError('Error de conexión con el servidor. Verifique su conexión o intente nuevamente.');
+      } else {
+        setError(err.message || 'Error de autenticación');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <img 
-          src="/assets/images/StratSync(Sin_fondo).png" 
-          alt="StratSync Logo" 
-          className="auth-logo"
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <img
+          src={stratSyncLogo}
+          alt="StratSync Logo"
+          className={styles.logo}
         />
-        <h1 className="auth-title">Acceso Administrador</h1>
-        
-        <LoginForm isAdmin onSubmit={handleAdminLogin} />
-        
-        {error && <p className="auth-error">{error}</p>}
-        
-        <button 
-          className="auth-switch-btn"
+        <h1 className={styles.title}>Acceso Administrador</h1>
+
+        {isTimeout ? (
+          <div className={styles.timeoutMessage}>
+            <FaLock className={styles.timeoutIcon} />
+            <p>Demasiados intentos fallidos</p>
+            <p>Por favor espere 5 minutos</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <input
+              type="text"
+              placeholder="Usuario Admin"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className={styles.input}
+              required
+              disabled={isLoading}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={styles.input}
+              required
+              disabled={isLoading}
+            />
+            <button
+              type="submit"
+              className={styles.button}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Verificando...' : 'Ingresar como Admin'}
+            </button>
+          </form>
+        )}
+
+        {error && !isTimeout && (
+          <div className={styles.error}>
+            <p>{error}</p>
+            <button
+              className={styles.retryButton}
+              onClick={() => window.location.reload()}
+            >
+              Reintentar conexión
+            </button>
+          </div>
+        )}
+
+        <button
+          className={styles.switchButton}
           onClick={() => navigate('/login')}
         >
-          Modo Usuario Normal
+          <FaUser /> Modo Usuario Normal
         </button>
       </div>
     </div>
