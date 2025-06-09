@@ -6,6 +6,9 @@ import { stratSyncLogo } from '../../assets/images';
 const Header = () => {
   const { user, logout } = useAuth();
 
+// Aquí añadimos el console.log
+  console.log('User en Header:', user);
+
   // Función para obtener el nombre a mostrar según el tipo de usuario
   const getDisplayName = () => {
     if (!user) return 'Usuario';
