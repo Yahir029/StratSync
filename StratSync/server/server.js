@@ -1,19 +1,17 @@
-import app from './app.js';
-import sequelize from './config/db.js'; // Asegúrate de que esta ruta sea correcta
+import { Sequelize } from 'sequelize';
+import configFile from './config.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-// Probar conexión a la base de datos
-async function startServer() {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ Conectado correctamente a la base de datos Render');
+const env = process.env.NODE_ENV || 'development';
+const config = configFile[env];
 
-    app.listen(5000, '0.0.0.0', () => {
-      console.log('🚀 Servidor escuchando en el puerto 5000');
-    }); 
-  } catch (error) {
-    console.error('❌ Error al conectar con la base de datos:', error);
-    process.exit(1); // Detener ejecución si falla la conexión
-  }
+let sequelize;
+
+if (config.use_env_variable && process.env[config.use_env_variable]) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-startServer();
+export default sequelize;

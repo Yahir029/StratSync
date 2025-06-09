@@ -49,7 +49,6 @@ module.exports = {
 //startServer();
 
 
-// config/config.js
 const config = {
   development: {
     username: 'stratsync_user',
@@ -57,6 +56,7 @@ const config = {
     database: 'stratsync',
     host: 'localhost',
     dialect: 'postgres',
+    use_env_variable: 'DATABASE_URL', // 👈 Agregado aquí
   },
 };
 
