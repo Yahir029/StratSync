@@ -30,7 +30,7 @@ module.exports = {
 
 // config.js
 import app from '../app.js';
-const sequelize = require('./config/db.js');
+import sequelize from './db.js'; // Ajusta la ruta si es necesario
 
 async function startServer() {
   try {
