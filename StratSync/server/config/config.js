@@ -47,5 +47,3 @@ async function startServer() {
 }
 
 startServer();
-
-export default config;q
