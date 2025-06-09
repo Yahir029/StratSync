@@ -14,16 +14,38 @@ module.exports = {
   }
 };
 */
-const config = {
-  development: {
-   username: 'stratsync_user',
-    password: 'stratDBconect01$',
-    database: 'stratsync',
-    host: 'localhost',
-    dialect: 'postgres',
+//const config = {
+ // development: {
+ //  username: 'stratsync_user',
+   // password: 'stratDBconect01$',
+    //database: 'stratsync',
+    //host: 'localhost',
+    //dialect: 'postgres',
     // otros campos opcionales como logging, port, etc.
-  },
+  //},
   // otros entornos si los necesitas
-};
+//};
 
-export default config;
+
+
+// config.js
+const app = require('./app.js');
+const sequelize = require('./config/db.js');
+
+async function startServer() {
+  try {
+    await sequelize.authenticate();
+    console.log('✅ Conectado correctamente a la base de datos Render');
+
+    app.listen(5000, '0.0.0.0', () => {
+      console.log('🚀 Servidor escuchando en el puerto 5000');
+    });
+  } catch (error) {
+    console.error('❌ Error al conectar con la base de datos:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
+
+export default config;q
