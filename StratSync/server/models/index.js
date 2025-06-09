@@ -2,16 +2,15 @@
 import fs from 'fs';
 import path from 'path';
 import { Sequelize, DataTypes } from 'sequelize';
-import config from '../config/config.js'; // <- Asegúrate de que config.js tenga `export default`
+import configFile from '../config/config.js'; // <- Nombre cambiado aquí
 import { fileURLToPath, pathToFileURL } from 'url';
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = configFile[env];
+const config = configFile[env]; // Ya no choca porque no hay otra `config`
 
 const db = {};
 
