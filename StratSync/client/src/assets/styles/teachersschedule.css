@@ -1,0 +1,235 @@
+/* teachersschedule.css - Versión optimizada */
+.teachers-schedule-page {
+  padding-top: 96px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header styles */
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.dashboard-header h1 {
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+}
+
+.dashboard-header p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* Schedule container */
+.schedule-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin: 0 1rem 2rem;
+}
+
+.schedule-section h2 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #f0f0f0;
+  font-size: 1.5rem;
+}
+
+/* Table styles */
+.schedule-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.schedule-table th,
+.schedule-table td {
+  padding: 0.75rem;
+  text-align: center;
+  border: 1px solid #e0e0e0;
+}
+
+.schedule-table th {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.schedule-table tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.time-slot {
+  font-weight: 600;
+  background: #f8f8f8;
+  color: #444;
+  font-size: 0.85rem;
+}
+
+/* Class card styles */
+.scheduled-class {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin: 0.15rem;
+  background: #f5f9ff;
+  border-left: 3px solid var(--primary-color);
+  transition: all 0.2s ease;
+}
+
+.scheduled-class:hover {
+  background: #ebf3ff;
+  transform: translateY(-1px);
+}
+
+.scheduled-class .subject {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 0.9rem;
+}
+
+.scheduled-class .category {
+  font-size: 0.75rem;
+  color: #555;
+  font-style: italic;
+}
+
+.scheduled-class .classroom {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.scheduled-class .time {
+  font-size: 0.7rem;
+  color: #888;
+  margin-top: 0.25rem;
+}
+
+/* States */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.loading-spinner {
+  border: 4px solid #f0f0f0;
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  background: #ffeeee;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  margin: 1rem;
+  border-left: 4px solid #ff5252;
+}
+
+.error-message h2 {
+  color: #ff5252;
+  margin-bottom: 0.5rem;
+}
+
+.retry-btn {
+  background: #ff5252;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.retry-btn:hover {
+  background: #ff3d3d;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin: 1rem;
+  border: 1px dashed #ddd;
+}
+
+.empty-state h2 {
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #888;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .teachers-schedule-page {
+    padding-top: 80px;
+  }
+  
+  .schedule-section {
+    padding: 1rem;
+    margin: 0 0.5rem 1.5rem;
+    border-radius: 8px;
+  }
+  
+  .schedule-table th,
+  .schedule-table td {
+    padding: 0.5rem;
+  }
+  
+  .scheduled-class {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .dashboard-header p {
+    font-size: 1rem;
+  }
+  
+  .schedule-section h2 {
+    font-size: 1.25rem;
+  }
+  
+  .time-slot {
+    font-size: 0.75rem;
+  }
+}
