@@ -1,19 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import MainLayout from '../../components/layout/MainLayout';
 import {
-  FaBook, FaCheck, FaPlus, FaTimes, FaEdit, FaTrash, FaList, FaQuestionCircle
+  FaBook, FaCheck, FaPlus, FaTimes, FaEdit, FaTrash, FaList,
+  FaQuestionCircle, FaCheckCircle
 } from 'react-icons/fa';
 import { useCategories } from '../../context/CategoriesContext';
 import '../../assets/styles/subjects.css';
 
 const SubjectsPage = () => {
   const { categories, addCategory, deleteCategory, dynamicCategories } = useCategories();
-
-  useEffect(() => {
-    console.log('Categorías disponibles para select:', dynamicCategories);
-  }, [dynamicCategories]);
-
   const [subjectsData, setSubjectsData] = useState({});
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [selectedSubjects, setSelectedSubjects] = useState([]);
@@ -31,6 +27,13 @@ const SubjectsPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Estado para notificaciones
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: '' // 'success' o 'error'
+  });
+
   useEffect(() => {
     const fetchSubjects = async () => {
       setLoading(true);
@@ -40,13 +43,13 @@ const SubjectsPage = () => {
         const subjects = res.data;
 
         const grouped = {
-          'Sin asignar': [] // Inicializamos explícitamente la categoría "Sin asignar"
+          'Sin asignar': []
         };
 
         subjects.forEach(subject => {
           const hasCategory = subject.Categorium && subject.Categorium.nombre;
           const categoryName = hasCategory ? subject.Categorium.nombre : 'Sin asignar';
-          
+
           if (!grouped[categoryName]) {
             grouped[categoryName] = [];
           }
@@ -63,6 +66,7 @@ const SubjectsPage = () => {
         setSubjectsData(grouped);
       } catch (err) {
         setError('Error al cargar materias desde el servidor.');
+        showNotification('Error al cargar materias', 'error');
         console.error('Error al cargar materias:', err);
       } finally {
         setLoading(false);
@@ -71,6 +75,24 @@ const SubjectsPage = () => {
 
     fetchSubjects();
   }, []);
+
+  // Función para mostrar notificaciones
+  const showNotification = (message, type = 'success') => {
+    setNotification({
+      show: true,
+      message,
+      type
+    });
+
+    // Ocultar después de 3 segundos
+    setTimeout(() => {
+      setNotification({
+        show: false,
+        message: '',
+        type: ''
+      });
+    }, 3000);
+  };
 
   const getSubjectsByCategory = () => {
     if (selectedCategory === 'Todos') {
@@ -140,7 +162,7 @@ const SubjectsPage = () => {
           return updatedData;
         });
 
-        alert('Materia actualizada correctamente');
+        showNotification(`Materia "${newSubject.name}" actualizada correctamente`);
       } else {
         const res = await axios.post('http://localhost:5000/api/subjects', {
           nombre: newSubject.name,
@@ -169,7 +191,7 @@ const SubjectsPage = () => {
           ]
         }));
 
-        alert('Materia creada correctamente');
+        showNotification(`Materia "${newSubject.name}" creada correctamente`);
       }
 
       setNewSubject({
@@ -182,7 +204,9 @@ const SubjectsPage = () => {
       setIsEditing(false);
       setCurrentSubjectId(null);
     } catch (err) {
-      setError(`Error al ${isEditing ? 'actualizar' : 'crear'} la materia: ${err.response?.data?.message || err.message}`);
+      const errorMsg = `Error al ${isEditing ? 'actualizar' : 'crear'} la materia: ${err.response?.data?.message || err.message}`;
+      setError(errorMsg);
+      showNotification(errorMsg, 'error');
       console.error(err);
     } finally {
       setLoading(false);
@@ -198,9 +222,11 @@ const SubjectsPage = () => {
       if (success) {
         setNewCategoryName('');
         setShowCategoryForm(false);
+        showNotification(`Categoría "${newCategoryName}" agregada`);
       }
     } catch (err) {
       setError('Error al agregar la categoría');
+      showNotification('Error al agregar la categoría', 'error');
     } finally {
       setLoading(false);
     }
@@ -232,8 +258,11 @@ const SubjectsPage = () => {
           delete updatedData[categoryToDelete];
           return updatedData;
         });
+
+        showNotification(`Categoría "${categoryToDelete}" eliminada`);
       } catch (err) {
         setError('Error al eliminar la categoría');
+        showNotification('Error al eliminar la categoría', 'error');
       } finally {
         setLoading(false);
       }
@@ -273,9 +302,14 @@ const SubjectsPage = () => {
         });
 
         setSelectedSubjects([]);
-        alert('Materia(s) eliminada(s) correctamente');
+        showNotification(
+          selectedSubjects.length > 1
+            ? 'Materias eliminadas correctamente'
+            : 'Materia eliminada correctamente'
+        );
       } catch (err) {
         setError('Error al eliminar materias');
+        showNotification('Error al eliminar materias', 'error');
         console.error(err);
       } finally {
         setLoading(false);
@@ -308,6 +342,14 @@ const SubjectsPage = () => {
     <MainLayout>
       <div className="subjects-container">
         <h1>StratSync - Gestión de Materias</h1>
+
+        {/* Notificación flotante */}
+        {notification.show && (
+          <div className={`notification ${notification.type}`}>
+            <FaCheckCircle className="notification-icon" />
+            <span>{notification.message}</span>
+          </div>
+        )}
 
         <div className="main-content">
           {/* Sidebar de categorías */}
@@ -380,7 +422,6 @@ const SubjectsPage = () => {
           <div className="subjects-content">
             <div className="subjects-header">
               <h2>{selectedCategory}</h2>
-              <p>Materias disponibles en esta categoría</p>
 
               <div className="subjects-actions">
                 <button
@@ -393,29 +434,6 @@ const SubjectsPage = () => {
                 >
                   <FaPlus /> Nueva Materia
                 </button>
-
-                {selectedSubjects.length > 0 && (
-                  <div className="selection-actions">
-                    {selectedSubjects.length === 1 && (
-                      <button
-                        className="edit-subject-btn"
-                        onClick={() => {
-                          const subjectToEdit = getSubjectsByCategory()
-                            .find(s => s.id === selectedSubjects[0]);
-                          prepareEditForm(subjectToEdit);
-                        }}
-                      >
-                        <FaEdit /> Editar
-                      </button>
-                    )}
-                    <button
-                      className="delete-subject-btn"
-                      onClick={handleDeleteSubjects}
-                    >
-                      <FaTrash /> Eliminar {selectedSubjects.length > 1 && `(${selectedSubjects.length})`}
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -465,6 +483,30 @@ const SubjectsPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Botones flotantes para acciones con selección múltiple */}
+        {selectedSubjects.length > 0 && (
+          <div className="sticky-actions">
+            {selectedSubjects.length === 1 && (
+              <button
+                className="edit-subject-btn"
+                onClick={() => {
+                  const subjectToEdit = getSubjectsByCategory()
+                    .find(s => s.id === selectedSubjects[0]);
+                  prepareEditForm(subjectToEdit);
+                }}
+              >
+                <FaEdit /> Editar
+              </button>
+            )}
+            <button
+              className="delete-subject-btn"
+              onClick={handleDeleteSubjects}
+            >
+              <FaTrash /> {selectedSubjects.length === 1 ? 'Eliminar' : `Eliminar (${selectedSubjects.length})`}
+            </button>
+          </div>
+        )}
 
         {/* Formulario modal */}
         {showForm && (

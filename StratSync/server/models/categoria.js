@@ -28,5 +28,13 @@ export default (sequelize, DataTypes) => {
     });
   };
 
+  // 🔥 Añadir esta asociación
+  Categoria.associate = (models) => {
+    Categoria.hasMany(models.Teacher, {
+      foreignKey: 'categoria_id',
+      as: 'teachers'
+    });
+  };
+
   return Categoria;
 };

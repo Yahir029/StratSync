@@ -61,5 +61,14 @@ export default (sequelize, DataTypes) => {
     timestamps: false
   });
 
+// 🔥 Añadir esta asociación
+  Teacher.associate = (models) => {
+    Teacher.belongsTo(models.Categoria, {
+      foreignKey: 'categoria_id',
+      as: 'categoria',
+      onDelete: 'SET NULL'
+    });
+  };
+
   return Teacher;
 };

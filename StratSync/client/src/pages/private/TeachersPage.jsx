@@ -1,24 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import {
-  FaUser,
-  FaCheck,
-  FaPlus,
-  FaTimes,
-  FaPhone,
-  FaEnvelope,
-  FaInfoCircle,
-  FaList,
-  FaQuestionCircle,
-  FaEdit,
-  FaTrash
+  FaUser, FaCheck, FaPlus, FaTimes, FaPhone, FaEnvelope, FaInfoCircle,
+  FaList, FaQuestionCircle, FaEdit, FaTrash, FaCheckCircle
 } from 'react-icons/fa';
 import { useCategories } from '../../context/CategoriesContext';
 import {
-  getTeachers,
-  createTeacher,
-  updateTeacher,
-  deleteTeacher
+  getTeachers, createTeacher, updateTeacher, deleteTeacher
 } from '../../services/teacherService';
 import '../../assets/styles/teachers.css';
 
@@ -34,24 +22,49 @@ const TeachersPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Estado para notificaciones
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: '' // 'success' o 'error'
+  });
+
   const [newTeacher, setNewTeacher] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
     bio: '',
-    category: 'Sin asignar',
+    category: '',
     code: '',
     photo: null,
     preview: null,
   });
 
-  const { categories: dynamicCategories } = useCategories();
+  const { dynamicCategories } = useCategories();
 
   // --- Efectos ---
   useEffect(() => {
     loadTeachers();
   }, []);
+
+  // Función para mostrar notificaciones
+  const showNotification = (message, type = 'success') => {
+    setNotification({
+      show: true,
+      message,
+      type
+    });
+
+    // Ocultar después de 3 segundos
+    setTimeout(() => {
+      setNotification({
+        show: false,
+        message: '',
+        type: ''
+      });
+    }, 3000);
+  };
 
   // --- Funciones principales ---
   const loadTeachers = async () => {
@@ -59,8 +72,9 @@ const TeachersPage = () => {
       setLoading(true);
       const data = await getTeachers();
 
+      // Agrupar por categoría para la vista
       const agrupados = data.reduce((acc, t) => {
-        const cat = t.categoria_nombre || 'Sin asignar';
+        const cat = t.categoria ? t.categoria.nombre : 'Sin asignar';
         if (!acc[cat]) acc[cat] = [];
         acc[cat].push(t);
         return acc;
@@ -73,7 +87,7 @@ const TeachersPage = () => {
     } catch (err) {
       console.error('Error cargando profesores:', err);
       setError(err.message);
-      alert('Error cargando profesores: ' + err.message);
+      showNotification('Error cargando profesores', 'error');
     } finally {
       setLoading(false);
     }
@@ -101,7 +115,7 @@ const TeachersPage = () => {
       email: teacher.correo || '',
       phone: teacher.telefono || '',
       bio: teacher.biografia || '',
-      category: teacher.categoria_nombre || 'Sin asignar',
+      category: teacher.categoria_id ? teacher.categoria_id.toString() : '',
       code: teacher.codigo_acceso_maestro || '',
       photo: null,
       preview: teacher.foto_perfil
@@ -132,17 +146,29 @@ const TeachersPage = () => {
     try {
       await Promise.all(selectedTeachers.map(id => deleteTeacher(id)));
       await loadTeachers();
+      showNotification(
+        `${selectedTeachers.length > 1 ? 'Profesores eliminados' : 'Profesor eliminado'} correctamente`
+      );
     } catch (err) {
       console.error('Error al eliminar:', err);
       setError('Error al eliminar: ' + err.message);
-      alert('Error al eliminar: ' + err.message);
+      showNotification('Error al eliminar profesor(es)', 'error');
     }
   };
 
   // --- Manejo del formulario ---
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewTeacher(prev => ({ ...prev, [name]: value }));
+
+    // Manejo especial para categoría
+    if (name === 'category') {
+      setNewTeacher(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    } else {
+      setNewTeacher(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleFileChange = (e) => {
@@ -161,29 +187,55 @@ const TeachersPage = () => {
   };
 
   const generateRandomCode = () => {
-    const randomCode = Math.floor(10000 + Math.random() * 90000).toString();
-    setNewTeacher(prev => ({ ...prev, code: randomCode }));
+    // Función para generar una parte del código (4 caracteres)
+    const generatePart = () => {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let part = '';
+      
+      for (let i = 0; i < 4; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        part += characters[randomIndex];
+      }
+      
+      return part;
+    };
+
+    // Generar dos partes y unirlas con un guión
+    const part1 = generatePart();
+    const part2 = generatePart();
+    const code = `${part1}-${part2}`;
+
+    setNewTeacher(prev => ({ ...prev, code: code }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Preparar payload para el backend
     const payload = {
       nombres: newTeacher.firstName,
       apellidos: newTeacher.lastName,
       correo: newTeacher.email,
       telefono: newTeacher.phone,
       biografia: newTeacher.bio,
-      categoria_nombre: newTeacher.category,
+      categoria_id: newTeacher.category ? parseInt(newTeacher.category) : null,
       codigo_acceso_maestro: newTeacher.code,
-      creado_por: 1, // Reemplazar con ID de usuario real
+      creado_por: 1,
     };
 
     try {
       if (isEditing && editingTeacherId) {
-        await updateTeacher(editingTeacherId, payload);
+        const updatedTeacher = await updateTeacher(editingTeacherId, payload);
+
+        // Mostrar notificación de éxito con nombre del profesor
+        showNotification(
+          `Profesor ${updatedTeacher.nombres} ${updatedTeacher.apellidos} actualizado correctamente`
+        );
       } else {
-        await createTeacher(payload);
+        const newTeacherData = await createTeacher(payload);
+        showNotification(
+          `Profesor ${newTeacherData.nombres} ${newTeacherData.apellidos} creado correctamente`
+        );
       }
 
       resetForm();
@@ -191,8 +243,7 @@ const TeachersPage = () => {
     } catch (err) {
       console.error('Error al guardar:', err);
       const errorMsg = err.response?.data?.error || err.message || 'Error desconocido';
-      setError('Error al guardar: ' + errorMsg);
-      alert('Error al guardar: ' + errorMsg);
+      showNotification(`Error: ${errorMsg}`, 'error');
     }
   };
 
@@ -206,7 +257,7 @@ const TeachersPage = () => {
       email: '',
       phone: '',
       bio: '',
-      category: 'Sin asignar',
+      category: '',
       code: '',
       photo: null,
       preview: null,
@@ -240,42 +291,49 @@ const TeachersPage = () => {
       <div className="teachers-container">
         <h1>StratSync - Gestión de Profesores</h1>
 
+        {/* Notificación flotante */}
+        {notification.show && (
+          <div className={`notification ${notification.type}`}>
+            <FaCheckCircle className="notification-icon" />
+            <span>{notification.message}</span>
+          </div>
+        )}
+
         <div className="main-content">
-          {/* Sidebar de categorías - Versión corregida */}
-      
-<div className="categories-sidebar">
-  <h2>Categorías</h2>
-  <ul>
-    {/* Item "Todos" fijo */}
-    <li
-      className={selectedCategory === 'Todos' ? 'active' : ''}
-      onClick={() => setSelectedCategory('Todos')}
-    >
-      <FaList className="category-icon" /> Todos
-    </li>
+          {/* Sidebar de categorías */}
+          <div className="categories-sidebar">
+            <h2>Categorías</h2>
+            <ul>
+              {/* Item "Todos" fijo */}
+              <li
+                className={selectedCategory === 'Todos' ? 'active' : ''}
+                onClick={() => setSelectedCategory('Todos')}
+              >
+                <FaList className="category-icon" /> Todos
+              </li>
 
-    {/* Categorías principales */}
-    {dynamicCategories
-      .filter(cat => cat !== 'Todos' && cat !== 'Sin asignar')
-      .map(cat => (
-        <li
-          key={cat}
-          className={selectedCategory === cat ? 'active' : ''}
-          onClick={() => setSelectedCategory(cat)}
-        >
-          {cat}
-        </li>
-      ))}
+              {/* Categorías principales */}
+              {dynamicCategories
+                .filter(cat => cat.nombre !== 'Todos' && cat.nombre !== 'Sin asignar')
+                .map(cat => (
+                  <li
+                    key={cat.id}
+                    className={selectedCategory === cat.nombre ? 'active' : ''}
+                    onClick={() => setSelectedCategory(cat.nombre)}
+                  >
+                    {cat.nombre}
+                  </li>
+                ))}
 
-    {/* Item "Sin asignar" único */}
-    <li
-      className={selectedCategory === 'Sin asignar' ? 'active' : ''}
-      onClick={() => setSelectedCategory('Sin asignar')}
-    >
-      <FaQuestionCircle className="category-icon" /> Sin asignar
-    </li>
-  </ul>
-</div>
+              {/* Item "Sin asignar" único */}
+              <li
+                className={selectedCategory === 'Sin asignar' ? 'active' : ''}
+                onClick={() => setSelectedCategory('Sin asignar')}
+              >
+                <FaQuestionCircle className="category-icon" /> Sin asignar
+              </li>
+            </ul>
+          </div>
 
           {/* Contenido principal */}
           <div className="teachers-content">
@@ -337,7 +395,7 @@ const TeachersPage = () => {
                         </p>
                       )}
                     </div>
-                    {teacher.categoria_nombre === 'Sin asignar' && (
+                    {!teacher.categoria && (
                       <div className="unassigned-badge">
                         Sin categoría asignada
                       </div>
@@ -453,14 +511,14 @@ const TeachersPage = () => {
                       value={newTeacher.category}
                       onChange={handleInputChange}
                     >
+                      <option value="">Sin asignar</option>
                       {dynamicCategories
-                        .filter(cat => cat !== 'Todos') // Filtramos aquí también por si acaso
+                        .filter(cat => cat.nombre !== 'Todos')
                         .map(cat => (
-                          <option key={cat} value={cat}>
-                            {cat}
+                          <option key={cat.id} value={cat.id}>
+                            {cat.nombre}
                           </option>
                         ))}
-                      <option value="Sin asignar">Sin asignar</option>
                     </select>
                   </div>
 
