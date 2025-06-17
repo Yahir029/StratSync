@@ -68,6 +68,13 @@ export default (sequelize, DataTypes) => {
       as: 'categoria',
       onDelete: 'SET NULL'
     });
+
+      // 🔥 ¡AGREGA ESTA ASOCIACIÓN CON HORARIO!
+    Teacher.hasMany(models.Horario, {
+      foreignKey: 'profesor_id', // Debe coincidir con el campo en Horario
+      as: 'horarios' // Este alias se usa en el controlador
+    });
+    
   };
 
   return Teacher;
