@@ -25,11 +25,11 @@ module.exports = {
   //},
   // otros entornos si los necesitas
 //};
+// server/config/config.js
+import dotenv from 'dotenv';
+dotenv.config();
 
-
-require('dotenv').config();
-
-module.exports = {
+const config = {
   development: {
     username: process.env.DB_USER || 'stratsync_user',
     password: process.env.DB_PASSWORD || 'stratDBconect01$',
@@ -49,6 +49,5 @@ module.exports = {
     }
   }
 };
-
 
 export default config;
