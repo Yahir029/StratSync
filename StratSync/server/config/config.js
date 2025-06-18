@@ -14,7 +14,7 @@ module.exports = {
   }
 };
 */
-const config = {
+/*const config = {
   development: {
    username: 'stratsync_user',
     password: 'stratDBconect01$',
@@ -24,6 +24,32 @@ const config = {
     // otros campos opcionales como logging, port, etc.
   },
   // otros entornos si los necesitas
+};
+
+export default config;*/
+
+import dotenv from 'dotenv';
+dotenv.config();
+
+const config = {
+  development: {
+    username: process.env.DB_USER || 'stratsync_user',
+    password: process.env.DB_PASSWORD || 'stratDBconect01$',
+    database: process.env.DB_NAME || 'stratsync',
+    host: process.env.DB_HOST || 'localhost',
+    dialect: 'postgres',
+    logging: false,
+  },
+  production: {
+    use_env_variable: 'DATABASE_URL',
+    dialect: 'postgres',
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    }
+  }
 };
 
 export default config;
