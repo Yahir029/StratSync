@@ -1,9 +1,9 @@
 // subjectsService.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/subjects'; // Ajusta según tu endpoint
+// Usar variable de entorno para la URL base
+const API_URL = `${process.env.REACT_APP_API_URL}/api/subjects`;
 
-// Exportación CORRECTA (con llaves)
 export const getAllSubjects = async () => {
   try {
     const response = await axios.get(API_URL);

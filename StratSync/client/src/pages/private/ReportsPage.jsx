@@ -9,30 +9,33 @@ const ReportsPage = () => {
   const [seleccionados, setSeleccionados] = useState([]);
 
   useEffect(() => {
-  const fetchProfesores = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/reportes/profesores-horarios');
-      const data = await response.json();
-      setProfesores(data);
-    } catch (error) {
-      console.error('Error al obtener los profesores:', error);
-      // Manejo de error (opcional)
-      setProfesores([
-        // Datos de ejemplo en caso de error
-        {
-          id: 1,
-          profesor: 'Juan Pérez',
-          horarios: [
-            { grupo: '3A', materia: 'Matemáticas', horario: 'Lunes 8:00 - 10:00' },
-          ]
+    const fetchProfesores = async () => {
+      try {
+        // Usar SOLAMENTE la variable de entorno (sin fallback)
+        const API_BASE = process.env.REACT_APP_API_URL; 
+        const response = await fetch(`${API_BASE}/api/reportes/profesores-horarios`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      ]);
-    }
-  };
 
-  fetchProfesores();
-}, []);
+        const data = await response.json();
 
+        // Verifica que la respuesta sea un array
+        if (!Array.isArray(data)) {
+          console.error('La respuesta no es un array:', data);
+          throw new Error('Formato de respuesta inesperado');
+        }
+
+        setProfesores(data);
+      } catch (error) {
+        console.error('Error al obtener los profesores:', error);
+
+      }
+    };
+
+    fetchProfesores();
+  }, []);
 
   const toggleSeleccion = (id) => {
     setSeleccionados(prev =>
@@ -41,27 +44,58 @@ const ReportsPage = () => {
   };
 
   const handleGeneratePDF = () => {
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
+      let firstPage = true;
 
-    seleccionados.forEach((id, index) => {
-      const prof = profesores.find(p => p.id === id);
-      if (!prof) return;
+      // Obtener fecha actual en formato DD-MM-YYYY_HH-MM
+      const now = new Date();
+      const dateStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
 
-      if (index !== 0) doc.addPage(); // Añade nueva hoja si no es el primero
+      // Determinar nombre del archivo basado en selección
+      let fileName;
+      if (seleccionados.length === 1) {
+        const prof = profesores.find(p => p.id === seleccionados[0]);
+        // Eliminar caracteres especiales pero mantener espacios
+        const cleanName = prof?.profesor.replace(/[^\w\sáéíóúÁÉÍÓÚñÑüÜ]/gi, '').replace(/\s+/g, ' ');
+        fileName = `Horario ${cleanName} ${dateStr}.pdf`;
+      } else {
+        fileName = `Horarios ${dateStr}.pdf`;
+      }
 
-      doc.text(`Horario de: ${prof.profesor}`, 14, 15);
+      seleccionados.forEach((id) => {
+        const prof = profesores.find(p => p.id === id);
+        if (!prof) return;
 
-      const columnas = ['Materia', 'Grupo', 'Horario'];
-      const filas = prof.horarios.map(h => [h.materia, h.grupo, h.horario]);
+        if (!firstPage) {
+          doc.addPage();
+        }
+        firstPage = false;
 
-      autoTable(doc, {
-        startY: 20,
-        head: [columnas],
-        body: filas,
+        doc.setFontSize(16);
+        doc.text(`Horario de: ${prof.profesor}`, 14, 15);
+
+        const columnas = ['Materia', 'Grupo', 'Horario'];
+        const filas = prof.horarios.map(h => [h.materia, h.grupo, h.horario]);
+
+        autoTable(doc, {
+          startY: 25,
+          head: [columnas],
+          body: filas,
+          theme: 'grid',
+          headStyles: {
+            fillColor: [41, 128, 185],
+            textColor: 255,
+            fontStyle: 'bold'
+          }
+        });
       });
-    });
 
-    doc.save('horarios-por-profesor.pdf');
+      doc.save(fileName);
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      alert('Ocurrió un error al generar el PDF');
+    }
   };
 
   return (
@@ -79,11 +113,11 @@ const ReportsPage = () => {
             </tr>
           </thead>
           <tbody>
-            {profesores.map((p) => (
+            {Array.isArray(profesores) && profesores.map((p) => (
               <tr key={p.id}>
                 <td>
                   <input
-                    type="checkbox" 
+                    type="checkbox"
                     checked={seleccionados.includes(p.id)}
                     onChange={() => toggleSeleccion(p.id)}
                   />
