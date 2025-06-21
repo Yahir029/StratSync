@@ -52,7 +52,8 @@ const SchedulePage = () => {
     startTime: '',
     endTime: '',
     category_id: '',
-    category_name: ''
+    category_name: '',
+    description: '' // Nuevo campo
   });
 
   const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -228,7 +229,8 @@ const SchedulePage = () => {
         hora_inicio: formatTimeForBackend(newAssignment.startTime),
         hora_fin: formatTimeForBackend(newAssignment.endTime),
         materia_id: parseInt(newAssignment.subject_id),
-        profesor_id: parseInt(newAssignment.teacher_id)
+        profesor_id: parseInt(newAssignment.teacher_id),
+        descripcion: newAssignment.description // Nuevo campo
       };
 
       if (newSchedule.hora_fin <= newSchedule.hora_inicio) {
@@ -255,7 +257,8 @@ const SchedulePage = () => {
         startTime: '',
         endTime: '',
         category_id: '',
-        category_name: ''
+        category_name: '',
+        description: ''
       });
 
     } catch (err) {
@@ -281,7 +284,8 @@ const SchedulePage = () => {
       startTime: '',
       endTime: '',
       category_id: '',
-      category_name: ''
+      category_name: '',
+      description: ''
     });
   };
 
@@ -294,7 +298,8 @@ const SchedulePage = () => {
       startTime: normalizeTime(schedule.hora_inicio),
       endTime: normalizeTime(schedule.hora_fin),
       category_id: getCategoryId(schedule),
-      category_name: getCategoryName(getCategoryId(schedule))
+      category_name: getCategoryName(getCategoryId(schedule)),
+      description: schedule.descripcion || '' // Nuevo campo
     });
     setShowAssignmentForm(true);
   };
@@ -516,6 +521,11 @@ const SchedulePage = () => {
                                   <div className="time">
                                     {normalizeTime(group.schedule.hora_inicio) || '--:--'} - {normalizeTime(group.schedule.hora_fin) || '--:--'}
                                   </div>
+                                  {group.schedule.descripcion && (
+                                    <div className="description-indicator">
+                                      <FaBook />
+                                    </div>
+                                  )}
                                 </div>
                               </td>
                             );
@@ -555,6 +565,14 @@ const SchedulePage = () => {
               <div className="detail-item">
                 <strong>Horario:</strong> {normalizeTime(expandedClass.hora_inicio) || '--:--'} - {normalizeTime(expandedClass.hora_fin) || '--:--'}
               </div>
+              <div className="detail-item">
+                <strong>Categoría:</strong> {getCategoryName(getCategoryId(expandedClass))}
+              </div>
+              {expandedClass.descripcion && (
+                <div className="detail-item">
+                  <strong>Descripción:</strong> {expandedClass.descripcion}
+                </div>
+              )}
               <div className="detail-actions">
                 <button 
                   className="edit-btn"
@@ -591,89 +609,117 @@ const SchedulePage = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmitAssignment}>
-                <div className="form-group">
-                  <label>Día</label>
-                  <select
-                    name="day"
-                    value={newAssignment.day}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Seleccionar día</option>
-                    {days.map(day => (
-                      <option key={day} value={day}>{day}</option>
-                    ))}
-                  </select>
-                </div>
+              <div className="form-scroll-container">
+                <form onSubmit={handleSubmitAssignment}>
+                  <div className="form-section">
+                    <h4>Día y Horario</h4>
+                    <div className="form-group">
+                      <label>Día</label>
+                      <select
+                        name="day"
+                        value={newAssignment.day}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option value="">Seleccionar día</option>
+                        {days.map(day => (
+                          <option key={day} value={day}>{day}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Hora de inicio</label>
-                    <input
-                      type="time"
-                      name="startTime"
-                      value={newAssignment.startTime}
-                      onChange={handleInputChange}
-                      required
-                    />
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Hora de inicio</label>
+                        <input
+                          type="time"
+                          name="startTime"
+                          value={newAssignment.startTime}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Hora de fin</label>
+                        <input
+                          type="time"
+                          name="endTime"
+                          value={newAssignment.endTime}
+                          onChange={handleInputChange}
+                          min={newAssignment.startTime}
+                          required
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <label>Hora de fin</label>
-                    <input
-                      type="time"
-                      name="endTime"
-                      value={newAssignment.endTime}
-                      onChange={handleInputChange}
-                      min={newAssignment.startTime}
-                      required
-                    />
+
+                  <div className="form-divider"></div>
+
+                  <div className="form-section">
+                    <h4>Profesor y Materia</h4>
+                    <div className="form-group">
+                      <label>Profesor</label>
+                      <select
+                        name="teacher_id"
+                        value={newAssignment.teacher_id}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option value="">Seleccionar profesor</option>
+                        {teachers.map(teacher => (
+                          <option key={teacher.id} value={teacher.id}>
+                            {teacher.nombres} {teacher.apellidos}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Materia</label>
+                      <select
+                        name="subject_id"
+                        value={newAssignment.subject_id}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option value="">Seleccionar materia</option>
+                        {subjects.map(subject => (
+                          <option key={subject.id} value={subject.id}>
+                            {subject.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-group category-display">
+                      <label>Categoría:</label>
+                      <span className="category-name">
+                        {newAssignment.category_name || 'Seleccione una materia'}
+                      </span>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Descripción (opcional)</label>
+                      <textarea
+                        name="description"
+                        value={newAssignment.description}
+                        onChange={handleInputChange}
+                        rows="3"
+                        placeholder="Agregar detalles adicionales"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="form-group">
-                  <label>Profesor</label>
-                  <select
-                    name="teacher_id"
-                    value={newAssignment.teacher_id}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Seleccionar profesor</option>
-                    {teachers.map(teacher => (
-                      <option key={teacher.id} value={teacher.id}>
-                        {teacher.nombres} {teacher.apellidos}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Materia</label>
-                  <select
-                    name="subject_id"
-                    value={newAssignment.subject_id}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Seleccionar materia</option>
-                    {subjects.map(subject => (
-                      <option key={subject.id} value={subject.id}>
-                        {subject.nombre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-actions">
-                  <button type="submit" className="submit-btn">
-                    {editingScheduleId ? 'Actualizar' : 'Asignar'}
-                  </button>
-                  <button type="button" className="cancel-btn" onClick={closeModal}>
-                    Cancelar
-                  </button>
-                </div>
-              </form>
+                  <div className="form-actions">
+                    <button type="submit" className="submit-btn">
+                      {editingScheduleId ? 'Actualizar' : 'Asignar'}
+                    </button>
+                    <button type="button" className="cancel-btn" onClick={closeModal}>
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}
