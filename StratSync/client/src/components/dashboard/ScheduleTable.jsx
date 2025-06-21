@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaInfoCircle } from 'react-icons/fa';
 
 const ScheduleTable = ({ schedule }) => {
   return (
@@ -12,52 +13,33 @@ const ScheduleTable = ({ schedule }) => {
             <th>Miércoles</th>
             <th>Jueves</th>
             <th>Viernes</th>
+            <th>Sábado</th>
+            <th>Domingo</th>
           </tr>
         </thead>
         <tbody>
-          {schedule?.map((item, index) => (
+          {schedule.map((item, index) => (
             <tr key={index}>
               <td className="time-slot">{item.time}</td>
-              <td>
-                {item.monday && (
-                  <div className="scheduled-class">
-                    <span className="subject">{item.monday.subject}</span>
-                    <span className="teacher">{item.monday.teacher}</span>
-                  </div>
-                )}
-              </td>
-              <td>
-                {item.tuesday && (
-                  <div className="scheduled-class">
-                    <span className="subject">{item.tuesday.subject}</span>
-                    <span className="teacher">{item.tuesday.teacher}</span>
-                  </div>
-                )}
-              </td>
-              <td>
-                {item.wednesday && (
-                  <div className="scheduled-class">
-                    <span className="subject">{item.wednesday.subject}</span>
-                    <span className="teacher">{item.wednesday.teacher}</span>
-                  </div>
-                )}
-              </td>
-              <td>
-                {item.thursday && (
-                  <div className="scheduled-class">
-                    <span className="subject">{item.thursday.subject}</span>
-                    <span className="teacher">{item.thursday.teacher}</span>
-                  </div>
-                )}
-              </td>
-              <td>
-                {item.friday && (
-                  <div className="scheduled-class">
-                    <span className="subject">{item.friday.subject}</span>
-                    <span className="teacher">{item.friday.teacher}</span>
-                  </div>
-                )}
-              </td>
+              {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
+                <td key={day} className="schedule-cell">
+                  {item[day].length > 0 && (
+                    <div className="class-stack">
+                      {item[day].map((classInfo, classIndex) => (
+                        <div key={classIndex} className="scheduled-class compact">
+                          <div className="subject">{classInfo.subject}</div>
+                          <div className="teacher">{classInfo.teacher}</div>
+                          {classInfo.description && (
+                            <div className="description-indicator" title={classInfo.description}>
+                              <FaInfoCircle size={12} />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>
