@@ -11,7 +11,18 @@ import reportesRoutes from './routes/reportesRoutes.js';
 
 const app = express();
 
-app.use(cors());
+
+const allowedOrigins = [
+  'https://stratsync-backend.onrender.com', // opcional si haces peticiones internas
+  'https://schedules.stratfordlernen.com' // reemplaza con tu dominio real
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
+
 app.use(express.json());
 
 // Rutas principales
