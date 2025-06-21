@@ -1,11 +1,13 @@
-const API_URL = 'http://localhost:5000/api/teachers';
+const API_BASE = process.env.REACT_APP_API_URL;
+const TEACHERS_API = `${API_BASE}/api/teachers`;
+const CATEGORIES_API = `${API_BASE}/api/categories`;
 
 /**
  * Crea un nuevo profesor en el backend.
  * @param {Object} teacherData - Datos del profesor a crear.
  */
 export const createTeacher = async (teacherData) => {
-  const response = await fetch(API_URL, {
+  const response = await fetch(TEACHERS_API, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -22,13 +24,12 @@ export const createTeacher = async (teacherData) => {
 };
 
 /**
- * Obtiene todos los profesores desde el backend.
+ * Obtiene todos los profesores desde el backend con sus categorías.
  */
-// teacherService.js
 export const getTeachers = async () => {
   const [teachersRes, categoriesRes] = await Promise.all([
-    fetch(API_URL),
-    fetch('http://localhost:5000/api/categories')
+    fetch(TEACHERS_API),
+    fetch(CATEGORIES_API)
   ]);
 
   if (!teachersRes.ok || !categoriesRes.ok) {
@@ -43,16 +44,17 @@ export const getTeachers = async () => {
   return teachers.map(teacher => ({
     ...teacher,
     categoria_nombre: categories.find(c => c.id === teacher.categoria_id)?.nombre || 'Sin asignar',
-    categoria_completa: categories.find(c => c.id === teacher.categoria_id) // Opcional
+    categoria_completa: categories.find(c => c.id === teacher.categoria_id)
   }));
 };
+
 /**
  * Actualiza un profesor por ID.
  * @param {number|string} id - ID del profesor a actualizar.
  * @param {Object} teacherData - Nuevos datos del profesor.
  */
 export const updateTeacher = async (id, teacherData) => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await fetch(`${TEACHERS_API}/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -73,7 +75,7 @@ export const updateTeacher = async (id, teacherData) => {
  * @param {number|string} id - ID del profesor a eliminar.
  */
 export const deleteTeacher = async (id) => {
-  const response = await fetch(`${API_URL}/${id}`, {
+  const response = await fetch(`${TEACHERS_API}/${id}`, {
     method: 'DELETE',
   });
 

@@ -9,6 +9,9 @@ import { useCategories } from '../../context/CategoriesContext';
 import '../../assets/styles/subjects.css';
 
 const SubjectsPage = () => {
+  // Obtener la URL base desde las variables de entorno
+  const API_BASE = process.env.REACT_APP_API_URL;
+  
   const { categories, addCategory, deleteCategory, dynamicCategories } = useCategories();
   const [subjectsData, setSubjectsData] = useState({});
   const [selectedCategory, setSelectedCategory] = useState('Todos');
@@ -39,7 +42,8 @@ const SubjectsPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await axios.get('http://localhost:5000/api/subjects');
+        // Usar variable de entorno para la URL
+        const res = await axios.get(`${API_BASE}/api/subjects`);
         const subjects = res.data;
 
         const grouped = {
@@ -74,7 +78,7 @@ const SubjectsPage = () => {
     };
 
     fetchSubjects();
-  }, []);
+  }, [API_BASE]); // Añadir API_BASE como dependencia
 
   // Función para mostrar notificaciones
   const showNotification = (message, type = 'success') => {
@@ -124,7 +128,8 @@ const SubjectsPage = () => {
 
     try {
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/subjects/${currentSubjectId}`, {
+        // Usar variable de entorno para la URL
+        await axios.put(`${API_BASE}/api/subjects/${currentSubjectId}`, {
           nombre: newSubject.name,
           codigo: newSubject.code,
           descripcion: newSubject.description,
@@ -164,7 +169,8 @@ const SubjectsPage = () => {
 
         showNotification(`Materia "${newSubject.name}" actualizada correctamente`);
       } else {
-        const res = await axios.post('http://localhost:5000/api/subjects', {
+        // Usar variable de entorno para la URL
+        const res = await axios.post(`${API_BASE}/api/subjects`, {
           nombre: newSubject.name,
           codigo: newSubject.code,
           descripcion: newSubject.description,
@@ -288,8 +294,9 @@ const SubjectsPage = () => {
       'las materias seleccionadas' : 'esta materia'}?`)) {
       try {
         setLoading(true);
+        // Usar variable de entorno para la URL
         await Promise.all(selectedSubjects.map(id =>
-          axios.delete(`http://localhost:5000/api/subjects/${id}`)
+          axios.delete(`${API_BASE}/api/subjects/${id}`)
         ));
 
         setSubjectsData(prev => {

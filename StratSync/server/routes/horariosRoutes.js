@@ -6,7 +6,7 @@ const router = express.Router();
 router.get('/', horariosController.getHorarios);
 router.get('/maestro/:id', horariosController.getHorariosByMaestro);
 router.post('/', horariosController.createHorario);
-router.put('/:id', horariosController.updateHorario); // 👈 nueva ruta
+router.put('/:id', horariosController.updateHorario);
 router.delete('/:id', horariosController.deleteHorario);
 
 export default router;

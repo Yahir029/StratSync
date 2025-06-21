@@ -1,4 +1,3 @@
-// models/horario.js
 export default (sequelize, DataTypes) => {
   const Horario = sequelize.define('Horario', {
     dia_semana: {
@@ -21,6 +20,10 @@ export default (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    descripcion: {  // Nuevo campo
+      type: DataTypes.TEXT,
+      allowNull: true,  // Opcional
+    }
   }, {
     tableName: 'horarios',
     timestamps: false,

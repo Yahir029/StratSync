@@ -10,6 +10,9 @@ const TeachersschedulePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Obtener la URL base desde las variables de entorno
+  const API_BASE = process.env.REACT_APP_API_URL;
+
   // Días de la semana (1 = Lunes, 6 = Sábado)
   const dias = [
     { id: 1, nombre: 'Lunes' },
@@ -45,22 +48,23 @@ const TeachersschedulePage = () => {
     const fetchHorarios = async () => {
       try {
         if (!user?.id) return;
-        
+
         setLoading(true);
-        const response = await fetch(`http://localhost:5000/api/horarios/maestro/${user.id}`);
-        
+        // Usar variable de entorno para la URL
+        const response = await fetch(`${API_BASE}/api/horarios/maestro/${user.id}`);
+
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Ordenar por día y hora
-        const horariosOrdenados = data.sort((a, b) => 
-          a.dia_semana - b.dia_semana || 
+        const horariosOrdenados = data.sort((a, b) =>
+          a.dia_semana - b.dia_semana ||
           a.hora_inicio.localeCompare(b.hora_inicio)
         );
-        
+
         setHorarios(horariosOrdenados);
       } catch (err) {
         setError(err.message);
@@ -71,13 +75,13 @@ const TeachersschedulePage = () => {
     };
 
     fetchHorarios();
-  }, [user]);
+  }, [user, API_BASE]); // Añadir API_BASE como dependencia
 
   // Encontrar clase para un día y horario específico
   const getClase = (diaId, timeSlot) => {
     const [horaInicioSlot] = timeSlot.split(' - ');
-    const clase = horarios.find(h => 
-      h.dia_semana === diaId && 
+    const clase = horarios.find(h =>
+      h.dia_semana === diaId &&
       formatHora(h.hora_inicio) === horaInicioSlot
     );
 
@@ -102,7 +106,7 @@ const TeachersschedulePage = () => {
         <div className="error-message">
           <h2>Error al cargar el horario</h2>
           <p>{error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="retry-btn"
           >
@@ -153,8 +157,8 @@ const TeachersschedulePage = () => {
                     <tr key={index}>
                       <td className="time-slot">{slot}</td>
                       {dias.map(dia => (
-                        <td 
-                          key={`${dia.id}-${index}`} 
+                        <td
+                          key={`${dia.id}-${index}`}
                           className="schedule-cell"
                         >
                           {getClase(dia.id, slot)}

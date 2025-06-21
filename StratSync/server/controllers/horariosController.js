@@ -27,6 +27,7 @@ const getHorarios = async (req, res) => {
       dia_semana: h.dia_semana,
       hora_inicio: h.hora_inicio,
       hora_fin: h.hora_fin,
+      descripcion: h.descripcion, // Nuevo campo
       profesor: {
         id: h.profesor.id,
         nombre: `${h.profesor.nombres} ${h.profesor.apellidos}`
@@ -50,7 +51,8 @@ const getHorarios = async (req, res) => {
 };
 
 const createHorario = async (req, res) => {
-  const { dia_semana, hora_inicio, hora_fin, profesor_id, materia_id } = req.body;
+  // Agregar descripcion en la desestructuración
+  const { dia_semana, hora_inicio, hora_fin, profesor_id, materia_id, descripcion } = req.body;
 
   // Validaciones básicas
   if (!dia_semana || !hora_inicio || !hora_fin || !profesor_id || !materia_id) {
@@ -107,13 +109,14 @@ const createHorario = async (req, res) => {
       });
     }
 
-    // Crear el nuevo horario
+    // Crear el nuevo horario con descripción
     const nuevoHorario = await Horario.create({
       dia_semana,
       hora_inicio,
       hora_fin,
       profesor_id,
-      materia_id
+      materia_id,
+      descripcion: descripcion || null // Nuevo campo
     });
 
     // Obtener el horario con relaciones para la respuesta
@@ -144,21 +147,25 @@ const createHorario = async (req, res) => {
       message: error.message 
     });
   }
-};;
+};
+
 const updateHorario = async (req, res) => {
   const { id } = req.params;
-  const { dia_semana, hora_inicio, hora_fin, profesor_id, materia_id } = req.body;
+  // Agregar descripcion
+  const { dia_semana, hora_inicio, hora_fin, profesor_id, materia_id, descripcion } = req.body;
 
   try {
     const horario = await Horario.findByPk(id);
     if (!horario) return res.status(404).json({ error: 'Horario no encontrado' });
 
+    // Actualizar con descripción
     await horario.update({
       dia_semana,
       hora_inicio,
       hora_fin,
       profesor_id,
-      materia_id
+      materia_id,
+      descripcion: descripcion || null // Nuevo campo
     });
 
     res.json({ message: 'Horario actualizado correctamente' });
@@ -213,6 +220,7 @@ const getHorariosByMaestro = async (req, res) => {
       dia_semana: h.dia_semana,
       hora_inicio: h.hora_inicio,
       hora_fin: h.hora_fin,
+      descripcion: h.descripcion, // Nuevo campo
       profesor: {
         id: h.profesor.id,
         nombre: `${h.profesor.nombres} ${h.profesor.apellidos}`
@@ -237,7 +245,7 @@ const getHorariosByMaestro = async (req, res) => {
 
 export default {
   getHorarios,
-  getHorariosByMaestro, // 👈 Agregado aquí
+  getHorariosByMaestro,
   createHorario,
   updateHorario,
   deleteHorario

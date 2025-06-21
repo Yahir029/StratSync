@@ -1,7 +1,9 @@
 // client/src/services/authService.js
 
+const API_BASE = process.env.REACT_APP_API_URL;
+
 export const adminLogin = async (usuario, contraseña) => {
-  const response = await fetch('http://localhost:5000/api/auth/admin-login', {
+  const response = await fetch(`${API_BASE}/api/auth/admin-login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -17,11 +19,8 @@ export const adminLogin = async (usuario, contraseña) => {
   return response.json();
 };
 
-// ✅ NUEVA función para login de profesores
-// client/src/services/authService.js
-
 export const teacherLogin = async (codigoAcceso) => {
-  const response = await fetch('http://localhost:5000/api/teacher-auth/login', {
+  const response = await fetch(`${API_BASE}/api/teacher-auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -35,4 +34,4 @@ export const teacherLogin = async (codigoAcceso) => {
   }
 
   return response.json();
-};;
+};

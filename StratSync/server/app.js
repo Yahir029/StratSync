@@ -6,8 +6,9 @@ import teacherRoutes from './routes/teacherRoutes.js';
 import categoriaRoutes from './routes/categoriaRoutes.js';
 import subjectsRoutes from './routes/subjectsRoutes.js';
 import horariosRoutes from './routes/horariosRoutes.js';
-import teacherAuthRoutes from './routes/teacherAuthRoutes.js'; // 👈 Nuevo
-import reportesRoutes from './routes/reportesRoutes.js'; 
+import teacherAuthRoutes from './routes/teacherAuthRoutes.js';
+import reportesRoutes from './routes/reportesRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
 
 const app = express();
 
@@ -33,6 +34,8 @@ app.use('/api/categories', categoriaRoutes);
 app.use('/api/subjects', subjectsRoutes);
 app.use('/api/horarios', horariosRoutes);
 app.use('/api/reportes', reportesRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+
 // Ruta de prueba
 app.get('/api/test', (req, res) => {
   res.send('Servidor API funcionando');
