@@ -22,22 +22,21 @@ const ScheduleTable = ({ schedule }) => {
             <tr key={index}>
               <td className="time-slot">{item.time}</td>
               {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => (
-                <td key={day} className="schedule-cell">
-                  {item[day].length > 0 && (
-                    <div className="class-stack">
-                      {item[day].map((classInfo, classIndex) => (
-                        <div key={classIndex} className="scheduled-class compact">
-                          <div className="subject">{classInfo.subject}</div>
-                          <div className="teacher">{classInfo.teacher}</div>
-                          {classInfo.description && (
-                            <div className="description-indicator" title={classInfo.description}>
-                              <FaInfoCircle size={12} />
-                            </div>
-                          )}
+                <td key={day} className="schedule-cell-dashboard">
+                  {item[day].map((classInfo, classIndex) => (
+                    <div 
+                      key={classIndex} 
+                      className="scheduled-class compact dashboard"
+                    >
+                      <div className="subject">{classInfo.subject}</div>
+                      <div className="teacher">{classInfo.teacher}</div>
+                      {classInfo.description && (
+                        <div className="description-indicator" title={classInfo.description}>
+                          <FaInfoCircle size={12} />
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
+                  ))}
                 </td>
               ))}
             </tr>

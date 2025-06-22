@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import {
-  FaPlus, 
-  FaTimes, 
-  FaCalendarAlt, 
-  FaChalkboardTeacher, 
-  FaBook, 
-  FaEdit, 
-  FaTrash, 
-  FaUserAlt, 
-  FaCheckCircle
+  FaPlus,
+  FaTimes,
+  FaBook,
+  FaEdit,
+  FaTrash,
+  FaUserAlt,
+  FaCheckCircle,
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import { useCategories } from '../../context/CategoriesContext';
 import {
@@ -25,7 +24,7 @@ import '../../assets/styles/dashboard.css';
 const SchedulePage = () => {
   const { categoriesObj: categories, loading: categoriesLoading } = useCategories();
 
-  // Estado para notificaciones
+  // Estados
   const [notification, setNotification] = useState({
     show: false,
     message: '',
@@ -41,6 +40,7 @@ const SchedulePage = () => {
   const [error, setError] = useState(null);
   const [expandedClass, setExpandedClass] = useState(null);
   const [showClassDetails, setShowClassDetails] = useState(false);
+  const [conflictDetected, setConflictDetected] = useState(false);
   
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [hasSelectedTeacher, setHasSelectedTeacher] = useState(false);
@@ -53,10 +53,11 @@ const SchedulePage = () => {
     endTime: '',
     category_id: '',
     category_name: '',
-    description: '' // Nuevo campo
+    description: ''
   });
 
-  const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+  // Constantes
+  const days = useMemo(() => ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'], []);
   
   const timeSlots = useMemo(() => {
     const slots = [];
@@ -72,29 +73,48 @@ const SchedulePage = () => {
     return slots;
   }, []);
 
-  // Función para mostrar notificaciones
-  const showNotification = (message, type = 'success') => {
+  // Función única para convertir tiempo a minutos
+  const convertToMinutes = useCallback((time) => {
+    if (!time) return 0;
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + (minutes || 0);
+  }, []);
+
+  const showNotification = useCallback((message, type = 'success') => {
     setNotification({
       show: true,
       message,
       type
     });
-
-    // Ocultar después de 3 segundos
-    setTimeout(() => {
-      setNotification({
-        show: false,
-        message: '',
-        type: ''
-      });
-    }, 3000);
-  };
-
-  useEffect(() => {
-    loadData();
+    setTimeout(() => setNotification({ show: false, message: '', type: '' }), 3000);
   }, []);
 
-  const loadData = async () => {
+  // Verificar disponibilidad del profesor
+  const isTeacherAvailable = useCallback((teacherId, day, startTime, endTime, excludeScheduleId = null) => {
+    const newStart = convertToMinutes(startTime);
+    const newEnd = convertToMinutes(endTime);
+    
+    const existingSchedules = scheduleData.filter(schedule => 
+      schedule.profesor?.id === parseInt(teacherId) && 
+      schedule.dia_semana === day
+    );
+    
+    for (const schedule of existingSchedules) {
+      if (excludeScheduleId && schedule.id === excludeScheduleId) continue;
+      
+      const existingStart = convertToMinutes(schedule.hora_inicio);
+      const existingEnd = convertToMinutes(schedule.hora_fin);
+      
+      if (newStart < existingEnd && newEnd > existingStart) {
+        return false;
+      }
+    }
+    
+    return true;
+  }, [scheduleData, convertToMinutes]);
+
+  // Cargar datos
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -149,8 +169,37 @@ const SchedulePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedTeacherId, showNotification]);
 
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Detectar conflictos en tiempo real
+  useEffect(() => {
+    if (newAssignment.teacher_id && newAssignment.day && newAssignment.startTime && newAssignment.endTime) {
+      const dayNumber = days.indexOf(newAssignment.day) + 1;
+      if (dayNumber < 1 || dayNumber > 7) return;
+
+      if (convertToMinutes(newAssignment.endTime) <= convertToMinutes(newAssignment.startTime)) {
+        setConflictDetected(false);
+        return;
+      }
+
+      const isAvailable = isTeacherAvailable(
+        newAssignment.teacher_id,
+        dayNumber,
+        newAssignment.startTime,
+        newAssignment.endTime,
+        editingScheduleId
+      );
+      setConflictDetected(!isAvailable);
+    } else {
+      setConflictDetected(false);
+    }
+  }, [newAssignment, days, isTeacherAvailable, editingScheduleId, convertToMinutes]);
+
+  // Datos filtrados y con detección de conflictos
   const filteredScheduleData = useMemo(() => {
     if (!selectedTeacherId) return [];
     return scheduleData.filter(schedule => 
@@ -168,7 +217,7 @@ const SchedulePage = () => {
 
   const getCategoryName = (categoryId) => {
     if (!categoryId || categoriesLoading || !categories) return 'Sin categoría';
-    const category = categories.find(cat => cat.id == categoryId);
+    const category = categories.find(cat => cat.id === Number(categoryId));
     return category ? category.nombre : 'Sin categoría';
   };
 
@@ -176,7 +225,7 @@ const SchedulePage = () => {
     const { name, value } = e.target;
 
     if (name === 'subject_id') {
-      const selectedSubject = subjects.find(s => s.id == value);
+      const selectedSubject = subjects.find(s => s.id === parseInt(value));
 
       if (selectedSubject) {
         const categoryId = selectedSubject.categoria_id || selectedSubject.category_id;
@@ -230,7 +279,7 @@ const SchedulePage = () => {
         hora_fin: formatTimeForBackend(newAssignment.endTime),
         materia_id: parseInt(newAssignment.subject_id),
         profesor_id: parseInt(newAssignment.teacher_id),
-        descripcion: newAssignment.description // Nuevo campo
+        descripcion: newAssignment.description
       };
 
       if (newSchedule.hora_fin <= newSchedule.hora_inicio) {
@@ -238,18 +287,32 @@ const SchedulePage = () => {
         return;
       }
 
-      let response;
+      // Validar conflicto de horario
+      const isAvailable = isTeacherAvailable(
+        newAssignment.teacher_id,
+        dayNumber,
+        newAssignment.startTime,
+        newAssignment.endTime,
+        editingScheduleId
+      );
+
+      if (!isAvailable) {
+        showNotification('El profesor ya tiene una clase asignada en ese horario', 'error');
+        return;
+      }
+
       if (editingScheduleId) {
-        response = await updateSchedule(editingScheduleId, newSchedule);
+        await updateSchedule(editingScheduleId, newSchedule);
         showNotification('Horario actualizado correctamente');
       } else {
-        response = await createSchedule(newSchedule);
+        await createSchedule(newSchedule);
         showNotification('Horario creado correctamente');
       }
 
       await loadData();
       setShowAssignmentForm(false);
       setEditingScheduleId(null);
+      setConflictDetected(false);
       setNewAssignment({
         day: '',
         subject_id: '',
@@ -277,6 +340,7 @@ const SchedulePage = () => {
   const closeModal = () => {
     setShowAssignmentForm(false);
     setEditingScheduleId(null);
+    setConflictDetected(false);
     setNewAssignment({
       day: '',
       subject_id: '',
@@ -299,7 +363,7 @@ const SchedulePage = () => {
       endTime: normalizeTime(schedule.hora_fin),
       category_id: getCategoryId(schedule),
       category_name: getCategoryName(getCategoryId(schedule)),
-      description: schedule.descripcion || '' // Nuevo campo
+      description: schedule.descripcion || ''
     });
     setShowAssignmentForm(true);
   };
@@ -326,12 +390,6 @@ const SchedulePage = () => {
   const closeClassDetails = () => {
     setShowClassDetails(false);
     setExpandedClass(null);
-  };
-
-  const convertToMinutes = (time) => {
-    if (!time) return 0;
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + (minutes || 0);
   };
 
   const groupedSchedules = useMemo(() => {
@@ -397,7 +455,7 @@ const SchedulePage = () => {
     });
     
     return groups;
-  }, [filteredScheduleData, timeSlots, days]);
+  }, [filteredScheduleData, timeSlots, days, convertToMinutes]);
 
   const occupiedCells = useMemo(() => {
     const occupied = Array(days.length)
@@ -415,15 +473,15 @@ const SchedulePage = () => {
 
   return (
     <MainLayout>
+      {/* Notificación flotante - z-index alto para que esté sobre todo */}
+      {notification.show && (
+        <div className={`notification ${notification.type}`} style={{ zIndex: 2000 }}>
+          <FaCheckCircle className="notification-icon" />
+          <span>{notification.message}</span>
+        </div>
+      )}
+      
       <div className="dashboard-container">
-        {/* Notificación flotante */}
-        {notification.show && (
-          <div className={`notification ${notification.type}`}>
-            <FaCheckCircle className="notification-icon" />
-            <span>{notification.message}</span>
-          </div>
-        )}
-
         <div className="schedule-section">
           <div className="schedule-header">
             <h1>StratSync - Horario</h1>
@@ -469,7 +527,10 @@ const SchedulePage = () => {
           )}
 
           {loading ? (
-            <div className="loading-indicator">Cargando horarios...</div>
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+              <p>Cargando horarios...</p>
+            </div>
           ) : (
             <div className="schedule-table-container">
               {!hasSelectedTeacher ? (
@@ -512,18 +573,20 @@ const SchedulePage = () => {
                                 rowSpan={group.rowSpan}
                               >
                                 <div 
-                                  className="scheduled-class compact"
+                                  className="scheduled-class compact schedule-section"
                                   onClick={() => handleClassClick(group.schedule)}
                                 >
                                   <div className="subject">
                                     {getSubjectName(group.schedule)}
                                   </div>
-                                  <div className="time">
-                                    {normalizeTime(group.schedule.hora_inicio) || '--:--'} - {normalizeTime(group.schedule.hora_fin) || '--:--'}
+                                  <div className="time-container">
+                                    <div className="time">
+                                      {normalizeTime(group.schedule.hora_inicio) || '--:--'} - {normalizeTime(group.schedule.hora_fin) || '--:--'}
+                                    </div>
                                   </div>
                                   {group.schedule.descripcion && (
-                                    <div className="description-indicator">
-                                      <FaBook />
+                                    <div className="description-icon" title={group.schedule.descripcion}>
+                                      <FaBook size={10} />
                                     </div>
                                   )}
                                 </div>
@@ -600,7 +663,7 @@ const SchedulePage = () => {
         )}
 
         {showAssignmentForm && (
-          <div className="modal-overlay">
+          <div className="modal-overlay" style={{ zIndex: 1500 }}>
             <div className="modal-content">
               <div className="modal-header">
                 <h3>{editingScheduleId ? 'Editar Horario' : 'Asignar Nueva Clase'}</h3>
@@ -651,6 +714,13 @@ const SchedulePage = () => {
                         />
                       </div>
                     </div>
+                    
+                    {/* Advertencia de conflicto en tiempo real */}
+                    {conflictDetected && (
+                      <div className="conflict-warning">
+                        <FaExclamationTriangle /> Conflicto de horario detectado para este profesor
+                      </div>
+                    )}
                   </div>
 
                   <div className="form-divider"></div>

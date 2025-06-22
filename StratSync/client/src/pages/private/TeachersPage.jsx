@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import {
   FaUser, FaCheck, FaPlus, FaTimes, FaPhone, FaEnvelope, FaInfoCircle,
@@ -43,13 +43,8 @@ const TeachersPage = () => {
 
   const { dynamicCategories } = useCategories();
 
-  // --- Efectos ---
-  useEffect(() => {
-    loadTeachers();
-  }, []);
-
   // Función para mostrar notificaciones
-  const showNotification = (message, type = 'success') => {
+  const showNotification = useCallback((message, type = 'success') => {
     setNotification({
       show: true,
       message,
@@ -64,10 +59,10 @@ const TeachersPage = () => {
         type: ''
       });
     }, 3000);
-  };
+  }, []);
 
   // --- Funciones principales ---
-  const loadTeachers = async () => {
+  const loadTeachers = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getTeachers();
@@ -82,7 +77,6 @@ const TeachersPage = () => {
 
       setTeachersByCategory(agrupados);
       setTeachers(data);
-      setSelectedTeachers([]);
       setError(null);
     } catch (err) {
       console.error('Error cargando profesores:', err);
@@ -91,7 +85,12 @@ const TeachersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showNotification]);
+
+  // --- Efectos ---
+  useEffect(() => {
+    loadTeachers();
+  }, [loadTeachers]);
 
   const getTeachersByCategory = () => {
     if (selectedCategory === 'Todos') {
@@ -108,7 +107,7 @@ const TeachersPage = () => {
   };
 
   // --- Operaciones CRUD ---
-  const prepareEditForm = (teacher) => {
+  const prepareEditForm = useCallback((teacher) => {
     setNewTeacher({
       firstName: teacher.nombres || '',
       lastName: teacher.apellidos || '',
@@ -125,7 +124,7 @@ const TeachersPage = () => {
     setEditingTeacherId(teacher.id);
     setIsEditing(true);
     setShowForm(true);
-  };
+  }, []);
 
   const handleEditSelected = () => {
     if (selectedTeachers.length === 1) {
@@ -146,6 +145,10 @@ const TeachersPage = () => {
     try {
       await Promise.all(selectedTeachers.map(id => deleteTeacher(id)));
       await loadTeachers();
+      
+      // Deseleccionar todos los profesores después de eliminar
+      setSelectedTeachers([]);
+      
       showNotification(
         `${selectedTeachers.length > 1 ? 'Profesores eliminados' : 'Profesor eliminado'} correctamente`
       );
@@ -159,16 +162,7 @@ const TeachersPage = () => {
   // --- Manejo del formulario ---
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
-    // Manejo especial para categoría
-    if (name === 'category') {
-      setNewTeacher(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    } else {
-      setNewTeacher(prev => ({ ...prev, [name]: value }));
-    }
+    setNewTeacher(prev => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e) => {
@@ -191,12 +185,12 @@ const TeachersPage = () => {
     const generatePart = () => {
       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let part = '';
-      
+
       for (let i = 0; i < 4; i++) {
         const randomIndex = Math.floor(Math.random() * characters.length);
         part += characters[randomIndex];
       }
-      
+
       return part;
     };
 
@@ -227,12 +221,20 @@ const TeachersPage = () => {
       if (isEditing && editingTeacherId) {
         const updatedTeacher = await updateTeacher(editingTeacherId, payload);
 
-        // Mostrar notificación de éxito con nombre del profesor
+        // Deseleccionar el profesor editado
+        setSelectedTeachers(prev => 
+          prev.filter(id => id !== editingTeacherId)
+        );
+        
         showNotification(
           `Profesor ${updatedTeacher.nombres} ${updatedTeacher.apellidos} actualizado correctamente`
         );
       } else {
         const newTeacherData = await createTeacher(payload);
+        
+        // Deseleccionar todos los profesores al crear uno nuevo
+        setSelectedTeachers([]);
+        
         showNotification(
           `Profesor ${newTeacherData.nombres} ${newTeacherData.apellidos} creado correctamente`
         );
@@ -280,7 +282,7 @@ const TeachersPage = () => {
       <MainLayout>
         <div className="teachers-container">
           <p className="error-message">Error: {error}</p>
-          <button onClick={loadTeachers}>Reintentar</button>
+          <button className="retry-btn" onClick={loadTeachers}>Reintentar</button>
         </div>
       </MainLayout>
     );
@@ -288,16 +290,16 @@ const TeachersPage = () => {
 
   return (
     <MainLayout>
+      {/* Notificación flotante */}
+      {notification.show && (
+        <div className={`notification ${notification.type}`}>
+          <FaCheckCircle className="notification-icon" />
+          <span>{notification.message}</span>
+        </div>
+      )}
+      
       <div className="teachers-container">
         <h1>StratSync - Gestión de Profesores</h1>
-
-        {/* Notificación flotante */}
-        {notification.show && (
-          <div className={`notification ${notification.type}`}>
-            <FaCheckCircle className="notification-icon" />
-            <span>{notification.message}</span>
-          </div>
-        )}
 
         <div className="main-content">
           {/* Sidebar de categorías */}

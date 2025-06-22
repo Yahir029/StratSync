@@ -1,0 +1,12 @@
+/* header.css */
+.user-greeting {
+  font-weight: 600;
+  margin-right: 15px;
+  font-size: 1.1rem;
+}
+
+/* Para resaltar el rol de administrador */
+.user-greeting.admin {
+  color: #e74c3c;
+  font-weight: 700;
+}
