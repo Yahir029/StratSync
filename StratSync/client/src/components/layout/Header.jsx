@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'; // Eliminamos la importación de useEffect
 import { useAuth } from '../../context/AuthContext';
 import '../../assets/styles/header.css';
 import { stratSyncLogo } from '../../assets/images';
@@ -6,29 +6,31 @@ import { stratSyncLogo } from '../../assets/images';
 const Header = () => {
   const { user, logout } = useAuth();
 
-  // Función para obtener el nombre a mostrar según el tipo de usuario
-  const getDisplayName = () => {
+  // Función para obtener el saludo personalizado
+  const getGreeting = () => {
     if (!user) return 'Usuario';
     
-    // Usuario administrador
-    if (user.role === 'admin') {
-      return user.username || 'Administrador';
+    if (user.isAdmin) {
+      return 'Administrador';
     }
     
-    // Usuario profesor
-    if (user.role === 'professor') {
-      // Verificamos diferentes posibles estructuras de datos
-      if (user.professor?.name) {
-        return user.professor.name;
-      }
-      if (user.fullName) {
-        return user.fullName;
-      }
-      return user.username || 'Profesor';
+    // Si tenemos nombre y apellidos
+    if (user.nombre && user.apellidos) {
+      return `Hola, ${user.nombre.trim()} ${user.apellidos}`;
     }
     
-    // Usuario estudiante u otros roles
-    return user.username || 'Usuario';
+    // Si solo tenemos nombre
+    if (user.nombre) {
+      return `Hola, ${user.nombre.trim()}`;
+    }
+    
+    // Si solo tenemos apellidos
+    if (user.apellidos) {
+      return `Hola, Profesor ${user.apellidos}`;
+    }
+    
+    // Si no tenemos nombre, usar ID como respaldo
+    return `Hola, Profesor #${user.id}`;
   };
 
   return (
@@ -44,7 +46,9 @@ const Header = () => {
       
       {user && (
         <div className="header-user">
-          <span className="user-greeting">Hola, {getDisplayName()}</span>
+          <span className={`user-greeting ${user.isAdmin ? 'admin' : ''}`}>
+            {getGreeting()}
+          </span>
           <button className="logout-btn" onClick={logout}>
             Cerrar Sesión
           </button>

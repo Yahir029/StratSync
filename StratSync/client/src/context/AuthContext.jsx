@@ -43,28 +43,39 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Login profesor
-  const handleTeacherLogin = async (codigoAcceso) => {
-    if (teacherAttempts >= 3) {
-      throw new Error('Demasiados intentos. Espere 5 minutos');
-    }
+  // AuthContext.jsx - Sección de login profesor
+const handleTeacherLogin = async (codigoAcceso) => {
+  if (teacherAttempts >= 3) {
+    throw new Error('Demasiados intentos. Espere 5 minutos');
+  }
 
-    try {
-      const response = await loginTeacherService(codigoAcceso);
-     const teacherData = {
-  id: response.teacher.id,
-  nombre: response.teacher.nombre,
-  isAdmin: false,
-  token: response.token || null,
+  try {
+    const response = await loginTeacherService(codigoAcceso);
+    
+    // 1. Verificar la estructura real de la respuesta
+    console.log("Respuesta completa de loginTeacherService:", response);
+    
+    // 2. Extraer los nombres correctamente
+    const teacherData = {
+      id: response.teacher.id,
+      nombre: response.teacher.nombres, // Cambiado a plural
+      apellidos: response.teacher.apellidos,
+      isAdmin: false,
+      token: response.token || null,
+    };
+    
+    // 3. Depurar antes de guardar
+    console.log("Datos del profesor a guardar:", teacherData);
+    
+    setUser(teacherData);
+    localStorage.setItem('stratSyncUser', JSON.stringify(teacherData));
+    setTeacherAttempts(0);
+    navigate('/teacher-schedule', { replace: true });
+  } catch (err) {
+    setTeacherAttempts((prev) => prev + 1);
+    throw err;
+  }
 };
-      setUser(teacherData);
-      localStorage.setItem('stratSyncUser', JSON.stringify(teacherData));
-      setTeacherAttempts(0);
-      navigate('/teacher-schedule', { replace: true }); // ruta ejemplo para profesor
-    } catch (err) {
-      setTeacherAttempts((prev) => prev + 1);
-      throw err;
-    }
-  };
 
   const logout = () => {
     setUser(null);
