@@ -3,6 +3,7 @@ import MainLayout from '../../components/layout/MainLayout';
 import '../../assets/styles/reports.css';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import logoImg from '../../assets/images/strat-sync-logo.png';
 
 const ReportsPage = () => {
   const [profesores, setProfesores] = useState([]);
@@ -11,8 +12,7 @@ const ReportsPage = () => {
   useEffect(() => {
     const fetchProfesores = async () => {
       try {
-        // Usar SOLAMENTE la variable de entorno (sin fallback)
-        const API_BASE = process.env.REACT_APP_API_URL; 
+        const API_BASE = process.env.REACT_APP_API_URL;
         const response = await fetch(`${API_BASE}/api/reportes/profesores-horarios`);
 
         if (!response.ok) {
@@ -21,7 +21,6 @@ const ReportsPage = () => {
 
         const data = await response.json();
 
-        // Verifica que la respuesta sea un array
         if (!Array.isArray(data)) {
           console.error('La respuesta no es un array:', data);
           throw new Error('Formato de respuesta inesperado');
@@ -30,7 +29,6 @@ const ReportsPage = () => {
         setProfesores(data);
       } catch (error) {
         console.error('Error al obtener los profesores:', error);
-
       }
     };
 
@@ -43,48 +41,64 @@ const ReportsPage = () => {
     );
   };
 
-  const handleGeneratePDF = () => {
+  const handleGeneratePDF = async () => {
     try {
       const doc = new jsPDF();
       let firstPage = true;
 
-      // Obtener fecha actual en formato DD-MM-YYYY_HH-MM
+      // Convertir imagen a base64
+      const toBase64 = (url) =>
+        fetch(url)
+          .then((res) => res.blob())
+          .then(
+            (blob) =>
+              new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              })
+          );
+
+      const logoBase64 = await toBase64(logoImg);
+
       const now = new Date();
       const dateStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
 
-      // Determinar nombre del archivo basado en selección
       let fileName;
       if (seleccionados.length === 1) {
         const prof = profesores.find(p => p.id === seleccionados[0]);
-        // Eliminar caracteres especiales pero mantener espacios
         const cleanName = prof?.profesor.replace(/[^\w\sáéíóúÁÉÍÓÚñÑüÜ]/gi, '').replace(/\s+/g, ' ');
         fileName = `Horario ${cleanName} ${dateStr}.pdf`;
       } else {
         fileName = `Horarios ${dateStr}.pdf`;
       }
 
-      seleccionados.forEach((id) => {
+      seleccionados.forEach((id, index) => {
         const prof = profesores.find(p => p.id === id);
         if (!prof) return;
 
-        if (!firstPage) {
-          doc.addPage();
-        }
+        if (!firstPage) doc.addPage();
         firstPage = false;
 
-        doc.setFontSize(16);
-        doc.text(`Horario de: ${prof.profesor}`, 14, 15);
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const imgWidth = 50;
+        const x = (pageWidth - imgWidth) / 2;
+        doc.addImage(logoBase64, 'PNG', x, 20, imgWidth, 30);
 
-        const columnas = ['Materia', 'Grupo', 'Horario'];
+        doc.setFontSize(16);
+        doc.text(`Horario de: ${prof.profesor}`, 14, 40);
+
+        const columnas = ['Materia', 'Grupo', 'Horario', 'Comentarios'];
         const filas = prof.horarios.map(h => [h.materia, h.grupo, h.horario]);
 
         autoTable(doc, {
-          startY: 25,
+          startY: 50,
           head: [columnas],
           body: filas,
           theme: 'grid',
           headStyles: {
-            fillColor: [41, 128, 185],
+            fillColor: [9, 25, 255],
             textColor: 255,
             fontStyle: 'bold'
           }
