@@ -11,26 +11,26 @@ const Header = () => {
     if (!user) return 'Usuario';
     
     if (user.isAdmin) {
-      return 'Administrador';
+      return 'Hola, Administrador';
     }
     
     // Si tenemos nombre y apellidos
     if (user.nombre && user.apellidos) {
-      return `Hola, ${user.nombre.trim()} ${user.apellidos}`;
+      return `Hola, Profesor@ ${user.nombre.trim()} ${user.apellidos}`;
     }
     
     // Si solo tenemos nombre
     if (user.nombre) {
-      return `Hola, ${user.nombre.trim()}`;
+      return `Hola, Profesor@ ${user.nombre.trim()}`;
     }
     
     // Si solo tenemos apellidos
     if (user.apellidos) {
-      return `Hola, Profesor ${user.apellidos}`;
+      return `Hola, Profesor@ ${user.apellidos}`;
     }
     
     // Si no tenemos nombre, usar ID como respaldo
-    return `Hola, Profesor #${user.id}`;
+    return `Hola, Profesor@ #${user.id}`;
   };
 
   return (

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../../components/layout/Header';
+import MainLayout from '../../components/layout/MainLayoutTeacher';
 import '../../assets/styles/teachersschedule.css';
-import MainLayout from '../../components/layout/MainLayout';
 import { useAuth } from '../../context/AuthContext';
 
 const TeachersschedulePage = () => {
@@ -10,10 +9,8 @@ const TeachersschedulePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Obtener la URL base desde las variables de entorno
   const API_BASE = process.env.REACT_APP_API_URL;
 
-  // Días de la semana (1 = Lunes, 6 = Sábado)
   const dias = [
     { id: 1, nombre: 'Lunes' },
     { id: 2, nombre: 'Martes' },
@@ -23,7 +20,6 @@ const TeachersschedulePage = () => {
     { id: 6, nombre: 'Sábado' }
   ];
 
-  // Rangos horarios (ajustables según tus necesidades)
   const timeSlots = [
     '07:00 - 08:00',
     '08:00 - 09:00',
@@ -40,17 +36,14 @@ const TeachersschedulePage = () => {
     '19:00 - 20:00'
   ];
 
-  // Formatear hora de la BD (ej: "18:36:00" → "18:36")
   const formatHora = (hora) => hora?.substring(0, 5) || '--:--';
 
-  // Obtener horarios del profesor
   useEffect(() => {
     const fetchHorarios = async () => {
       try {
         if (!user?.id) return;
 
         setLoading(true);
-        // Usar variable de entorno para la URL
         const response = await fetch(`${API_BASE}/api/horarios/maestro/${user.id}`);
 
         if (!response.ok) {
@@ -59,7 +52,6 @@ const TeachersschedulePage = () => {
 
         const data = await response.json();
 
-        // Ordenar por día y hora
         const horariosOrdenados = data.sort((a, b) =>
           a.dia_semana - b.dia_semana ||
           a.hora_inicio.localeCompare(b.hora_inicio)
@@ -75,9 +67,8 @@ const TeachersschedulePage = () => {
     };
 
     fetchHorarios();
-  }, [user, API_BASE]); // Añadir API_BASE como dependencia
+  }, [user, API_BASE]);
 
-  // Encontrar clase para un día y horario específico
   const getClase = (diaId, timeSlot) => {
     const [horaInicioSlot] = timeSlot.split(' - ');
     const clase = horarios.find(h =>
@@ -101,78 +92,79 @@ const TeachersschedulePage = () => {
 
   if (error) {
     return (
-      <div className="teachers-schedule-page">
-        <Header />
-        <div className="error-message">
-          <h2>Error al cargar el horario</h2>
-          <p>{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="retry-btn"
-          >
-            Reintentar
-          </button>
+      <MainLayout>
+        <div className="teachers-schedule-page">
+          <div className="error-message">
+            <h2>Error al cargar el horario</h2>
+            <p>{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="retry-btn"
+            >
+              Reintentar
+            </button>
+          </div>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
   return (
-    <div className="teachers-schedule-page">
-      <Header />
+    <MainLayout>
+      <div className="teachers-schedule-page">
+        <div className="dashboard-header">
+          <h1>Bienvenido, {user?.nombre}</h1>
+          <p>Tu horario personalizado</p>
+        </div>
 
-      <div className="dashboard-header">
-        <h1>Bienvenido, {user?.nombre}</h1>
-        <p>Tu horario personalizado</p>
-      </div>
-
-      <div className="schedule-section">
-        {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>Cargando horario...</p>
-          </div>
-        ) : horarios.length === 0 ? (
-          <div className="empty-state">
-            <h2>No tienes clases asignadas esta semana</h2>
-            <p>Por favor, contacta a administración si esto es un error</p>
-          </div>
-        ) : (
-          <>
-            <h2>Horario del Profesor</h2>
-            <div className="schedule-container">
-              <table className="schedule-table">
-                <thead>
-                  <tr>
-                    <th className="time-header">Horario</th>
-                    {dias.map(dia => (
-                      <th key={dia.id} className="day-header">
-                        {dia.nombre}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {timeSlots.map((slot, index) => (
-                    <tr key={index}>
-                      <td className="time-slot">{slot}</td>
+        <div className="schedule-section">
+          {loading ? (
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+              <p>Cargando horario...</p>
+            </div>
+          ) : horarios.length === 0 ? (
+            <div className="empty-state">
+              <h2>No tienes clases asignadas esta semana</h2>
+              <p>Por favor, contacta a administración si esto es un error</p>
+            </div>
+          ) : (
+            <>
+              <h2>Horario del Profesor</h2>
+              <div className="schedule-container">
+                <table className="schedule-table">
+                  <thead>
+                    <tr>
+                      <th className="time-header">Horario</th>
                       {dias.map(dia => (
-                        <td
-                          key={`${dia.id}-${index}`}
-                          className="schedule-cell"
-                        >
-                          {getClase(dia.id, slot)}
-                        </td>
+                        <th key={dia.id} className="day-header">
+                          {dia.nombre}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+                  </thead>
+                  <tbody>
+                    {timeSlots.map((slot, index) => (
+                      <tr key={index}>
+                        <td className="time-slot">{slot}</td>
+                        {dias.map(dia => (
+                          <td
+                            key={`${dia.id}-${index}`}
+                            className="schedule-cell"
+                          >
+                            {getClase(dia.id, slot)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

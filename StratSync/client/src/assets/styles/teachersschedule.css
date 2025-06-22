@@ -1,11 +1,21 @@
 /* teachersschedule.css - Versión optimizada */
-.teachers-schedule-page {
-  padding-top: 96px;
-  max-width: 1200px;
-  margin: 0 auto;
+:root {
+  --primary-color: #4A00E0;
+  --secondary-color: #8E2DE2;
+  --light-bg: #f8f9fa;
+  --border-color: #e0e0e0;
+  --text-dark: #333;
+  --text-light: #666;
 }
 
-/* Header styles */
+.teachers-schedule-page {
+  padding-top: 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: var(--light-bg);
+  min-height: 100vh;
+}
+
 .dashboard-header {
   text-align: center;
   margin-bottom: 2rem;
@@ -15,20 +25,19 @@
 .dashboard-header h1 {
   color: var(--primary-color);
   margin-bottom: 0.5rem;
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 
 .dashboard-header p {
-  color: #666;
+  color: var(--text-light);
   font-size: 1.1rem;
 }
 
-/* Schedule container */
 .schedule-section {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin: 0 1rem 2rem;
 }
 
@@ -40,24 +49,25 @@
   font-size: 1.5rem;
 }
 
-/* Table styles */
-.schedule-table-container {
+/* Contenedor de la tabla con scroll horizontal */
+.schedule-container {
   overflow-x: auto;
   border-radius: 8px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
 }
 
 .schedule-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  min-width: 800px; /* Ancho mínimo para mantener estructura */
 }
 
 .schedule-table th,
 .schedule-table td {
   padding: 0.75rem;
   text-align: center;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
 }
 
 .schedule-table th {
@@ -66,7 +76,8 @@
   font-weight: 600;
   font-size: 0.9rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
 }
 
 .schedule-table tr:nth-child(even) {
@@ -76,11 +87,12 @@
 .time-slot {
   font-weight: 600;
   background: #f8f8f8;
-  color: #444;
+  color: var(--text-dark);
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
-/* Class card styles */
+/* Estilos para las celdas de clase */
 .scheduled-class {
   display: flex;
   flex-direction: column;
@@ -90,12 +102,7 @@
   margin: 0.15rem;
   background: #f5f9ff;
   border-left: 3px solid var(--primary-color);
-  transition: all 0.2s ease;
-}
-
-.scheduled-class:hover {
-  background: #ebf3ff;
-  transform: translateY(-1px);
+  min-height: 80px;
 }
 
 .scheduled-class .subject {
@@ -106,13 +113,13 @@
 
 .scheduled-class .category {
   font-size: 0.75rem;
-  color: #555;
+  color: var(--text-light);
   font-style: italic;
 }
 
 .scheduled-class .classroom {
   font-size: 0.75rem;
-  color: #666;
+  color: var(--text-light);
 }
 
 .scheduled-class .time {
@@ -121,7 +128,7 @@
   margin-top: 0.25rem;
 }
 
-/* States */
+/* Estados de carga y error */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -185,18 +192,18 @@
 }
 
 .empty-state h2 {
-  color: #666;
+  color: var(--text-dark);
   margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-  color: #888;
+  color: var(--text-light);
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 768px) {
   .teachers-schedule-page {
-    padding-top: 80px;
+    padding-top: 70px;
   }
   
   .schedule-section {
@@ -213,10 +220,9 @@
   .scheduled-class {
     padding: 0.5rem;
     font-size: 0.8rem;
+    min-height: 70px;
   }
-}
-
-@media (max-width: 480px) {
+  
   .dashboard-header h1 {
     font-size: 1.5rem;
   }
@@ -228,8 +234,18 @@
   .schedule-section h2 {
     font-size: 1.25rem;
   }
+}
+
+@media (max-width: 480px) {
+  .teachers-schedule-page {
+    padding-top: 60px;
+  }
   
-  .time-slot {
-    font-size: 0.75rem;
+  .schedule-section {
+    margin: 0 0.25rem 1rem;
+  }
+  
+  .schedule-table {
+    min-width: 700px; /* Ajuste para móviles */
   }
 }
