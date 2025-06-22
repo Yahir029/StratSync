@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FaLock, FaUser } from 'react-icons/fa';
 import styles from '../../assets/styles/Login.module.css';
 import stratSyncLogo from '../../assets/images/strat-sync-logo.png';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const AdminLoginPage = () => {
   const { adminLogin, adminAttempts } = useAuth();
@@ -13,6 +14,7 @@ const AdminLoginPage = () => {
   const [error, setError] = useState('');
   const [isTimeout, setIsTimeout] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (adminAttempts >= 3) {
@@ -71,15 +73,28 @@ const AdminLoginPage = () => {
               required
               disabled={isLoading}
             />
-            <input
-              type="password"
-              placeholder="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={styles.input}
-              required
-              disabled={isLoading}
-            />
+
+
+             <div className={styles.passwordWrapper}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={styles.input}
+                required
+                disabled={isLoading}
+              />
+              <span
+                className={styles.passwordToggle}
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
+
+
+
             <button
               type="submit"
               className={styles.button}
@@ -97,7 +112,7 @@ const AdminLoginPage = () => {
               className={styles.retryButton}
               onClick={() => window.location.reload()}
             >
-              Reintentar conexión
+              Reintentar conexión 
             </button>
           </div>
         )}

@@ -1,4 +1,4 @@
-/* src/assets/styles/LoginPage.module.css */
+/* src/assets/styles/Login.module.css */
 /* Fondo azul como en tu App.js original */
 .container {
   display: flex;
@@ -54,6 +54,7 @@
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.3s;
+  padding-right: 40px;
 }
 
 .input:focus {
@@ -103,4 +104,35 @@
 
 .switchButton:hover {
   color: #0919ff;
+}
+
+/*Interacción para mostrar password*/
+
+.passwordWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.passwordWrapper input {
+  width: 100%;
+  padding-right: 40px; /* espacio para el icono */
+  box-sizing: border-box;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 10px; /* ajuste fino, separa icono del borde */
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #888;
+  font-size: 1.2rem;
+  z-index: 10;
+  user-select: none;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }

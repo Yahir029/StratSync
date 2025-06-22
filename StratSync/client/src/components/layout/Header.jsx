@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import '../../assets/styles/header.css';
 import { stratSyncLogo } from '../../assets/images';
+import petImage from '../../assets/images/pet.png';
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -40,8 +41,22 @@ const Header = () => {
           className="logo"
         />
         <h1>StratSync - Gestión de Horarios</h1>
+        <img
+          src={petImage}
+          alt="Pet"
+          className="pet-image-inline"
+        />
       </div>
       
+      {/* Imagen pet centrada */}
+        <div className="header-pet">
+          <img
+            src={petImage}
+            alt="Pet"
+            className="pet-image"
+          />
+        </div>
+
       {user && (
         <div className="header-user">
           <span className="user-greeting">Hola, {getDisplayName()}</span>
