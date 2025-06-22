@@ -49,13 +49,13 @@ const Header = () => {
       </div>
       
       {/* Imagen pet centrada */}
-        <div className="header-pet">
+       {/* <div className="header-pet">
           <img
             src={petImage}
             alt="Pet"
             className="pet-image"
           />
-        </div>
+        </div>*/}
 
       {user && (
         <div className="header-user">
