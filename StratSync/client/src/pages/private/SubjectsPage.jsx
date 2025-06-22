@@ -11,7 +11,7 @@ import '../../assets/styles/subjects.css';
 const SubjectsPage = () => {
   // Obtener la URL base desde las variables de entorno
   const API_BASE = process.env.REACT_APP_API_URL;
-  
+
   const { categories, addCategory, deleteCategory, dynamicCategories } = useCategories();
   const [subjectsData, setSubjectsData] = useState({});
   const [selectedCategory, setSelectedCategory] = useState('Todos');
@@ -167,6 +167,9 @@ const SubjectsPage = () => {
           return updatedData;
         });
 
+        // Deseleccionar la materia editada
+        setSelectedSubjects(prev => prev.filter(id => id !== currentSubjectId));
+        
         showNotification(`Materia "${newSubject.name}" actualizada correctamente`);
       } else {
         // Usar variable de entorno para la URL
@@ -197,6 +200,9 @@ const SubjectsPage = () => {
           ]
         }));
 
+        // Deseleccionar todas las materias al crear una nueva
+        setSelectedSubjects([]);
+        
         showNotification(`Materia "${newSubject.name}" creada correctamente`);
       }
 
@@ -308,7 +314,9 @@ const SubjectsPage = () => {
           return newData;
         });
 
+        // Deseleccionar todas las materias después de eliminar
         setSelectedSubjects([]);
+        
         showNotification(
           selectedSubjects.length > 1
             ? 'Materias eliminadas correctamente'
@@ -347,16 +355,17 @@ const SubjectsPage = () => {
 
   return (
     <MainLayout>
+
+      {/* Notificación flotante */}
+      {notification.show && (
+        <div className={`notification ${notification.type}`}>
+          <FaCheckCircle className="notification-icon" />
+          <span>{notification.message}</span>
+        </div>
+      )}
+      
       <div className="subjects-container">
         <h1>StratSync - Gestión de Materias</h1>
-
-        {/* Notificación flotante */}
-        {notification.show && (
-          <div className={`notification ${notification.type}`}>
-            <FaCheckCircle className="notification-icon" />
-            <span>{notification.message}</span>
-          </div>
-        )}
 
         <div className="main-content">
           {/* Sidebar de categorías */}
