@@ -15,7 +15,7 @@ const app = express();
 
 const allowedOrigins = [
   'https://stratsync-backend.onrender.com', // opcional si haces peticiones internas
-  'https://schedules.stratfordlernen.com' // reemplaza con tu dominio real
+  'https://schedules.stratfordlernen.com', // reemplaza con tu dominio real
   'http://localhost:3000' // 👈 necesario para desarrollo local
 ];
 
