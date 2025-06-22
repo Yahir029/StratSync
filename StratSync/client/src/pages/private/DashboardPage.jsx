@@ -96,7 +96,7 @@ const DashboardPage = () => {
     <MainLayout>
       <div className="dashboard-container">
         <div className="dashboard-header">
-          <h1>Welcome to StratSync</h1>
+          <h1>Welcome to StratfordSync</h1>
           <p>Sistema de gestión académica y horarios</p>
         </div>
         

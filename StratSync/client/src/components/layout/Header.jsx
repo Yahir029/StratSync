@@ -42,7 +42,7 @@ const Header = () => {
           alt="StratSync Logo"
           className="logo"
         />
-        <h1>StratSync - Gestión de Horarios</h1>
+        <h1>StratfordSync - Gestión de Horarios</h1>
         <img
           src={petImage}
           alt="Pet"
