@@ -84,7 +84,7 @@ const ReportsPage = () => {
         const pageWidth = doc.internal.pageSize.getWidth();
         const imgWidth = 50;
         const x = (pageWidth - imgWidth) / 2;
-        doc.addImage(logoBase64, 'PNG', x, 20, imgWidth, 30);
+        doc.addImage(logoBase64, 'PNG', x, 5, imgWidth, 30);
 
         doc.setFontSize(16);
         doc.text(`Horario de: ${prof.profesor}`, 14, 40);
