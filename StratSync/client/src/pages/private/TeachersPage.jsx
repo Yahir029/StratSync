@@ -362,7 +362,7 @@ const TeachersPage = () => {
                   className={`teacher-card ${selectedTeachers.includes(teacher.id) ? 'selected' : ''}`}
                   onClick={() => toggleTeacherSelection(teacher.id)}
                 >
-                  <div className="teacher-oval">
+                 {/* <div className="teacher-oval">
                     {teacher.foto_perfil ? (
                       <img
                         src={`data:image/*;base64,${teacher.foto_perfil}`}
@@ -377,7 +377,9 @@ const TeachersPage = () => {
                         <FaCheck />
                       </div>
                     )}
-                  </div>
+                  </div> */}
+
+                  
                   <div className="teacher-info">
                     <h4>{teacher.nombres} {teacher.apellidos}</h4>
                     {teacher.biografia && (
@@ -535,7 +537,7 @@ const TeachersPage = () => {
                     />
                   </div>
 
-                  <div className="form-group">
+                   {/* <div className="form-group">
                     <label>Foto de Perfil</label>
                     <div className="photo-upload">
                       {newTeacher.preview ? (
@@ -548,7 +550,7 @@ const TeachersPage = () => {
                           <button
                             type="button"
                             className="change-photo-btn"
-                            onClick={() => setNewTeacher(prev => ({ ...prev, photo: null, preview: null }))}
+                            onClick=() => setNewTeacher(prev => ({ ...prev, photo: null, preview: null }))}
                           >
                             Cambiar foto
                           </button>
@@ -565,7 +567,8 @@ const TeachersPage = () => {
                         </label>
                       )}
                     </div>
-                  </div>
+                  </div> */}
+
 
                   <div className="form-actions">
                     <button

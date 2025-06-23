@@ -89,9 +89,18 @@ const ReportsPage = () => {
         doc.setFontSize(16);
         doc.text(`Horario de: ${prof.profesor}`, 14, 40);
 
-        const columnas = ['Materia', 'Grupo', 'Horario', 'Comentarios'];
-        const filas = prof.horarios.map(h => [h.materia, h.grupo, h.horario]);
+        const columnas = ['Materia', 'Categoría', 'Horario', 'Comentarios'];
+        
 
+          
+          const filas = prof.horarios.map(h => [
+            `${h.materia}\n${h.descripcion || 'Introducción'}`, // texto principal + texto debajo
+            h.categoría,
+            h.horario
+          ]);
+
+
+        
         autoTable(doc, {
           startY: 50,
           head: [columnas],
