@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+t import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import stratSyncLogo from '../../assets/images/strat-sync-logo.png';
