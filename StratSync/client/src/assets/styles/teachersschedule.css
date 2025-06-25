@@ -1,4 +1,3 @@
-/* teachersschedule.css - Versión optimizada */
 :root {
   --primary-color: #4A00E0;
   --secondary-color: #8E2DE2;
@@ -49,7 +48,6 @@
   font-size: 1.5rem;
 }
 
-/* Contenedor de la tabla con scroll horizontal */
 .schedule-container {
   overflow-x: auto;
   border-radius: 8px;
@@ -60,7 +58,7 @@
 .schedule-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px; /* Ancho mínimo para mantener estructura */
+  min-width: 800px;
 }
 
 .schedule-table th,
@@ -92,40 +90,68 @@
   white-space: nowrap;
 }
 
-/* Estilos para las celdas de clase */
+/* Clase programada */
 .scheduled-class {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
   padding: 0.75rem;
   border-radius: 6px;
   margin: 0.15rem;
   background: #f5f9ff;
   border-left: 3px solid var(--primary-color);
-  min-height: 80px;
+  min-height: 60px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.scheduled-class .subject {
+.scheduled-class:hover {
+  background: #e8f0ff;
+}
+
+.scheduled-class.expanded {
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.class-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.class-summary .subject {
   font-weight: 600;
   color: var(--primary-color);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
-.scheduled-class .category {
+.class-summary .time {
   font-size: 0.75rem;
-  color: var(--text-light);
-  font-style: italic;
+  color: #666;
 }
 
-.scheduled-class .classroom {
+.class-details {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #ddd;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 0.3rem;
   font-size: 0.75rem;
-  color: var(--text-light);
 }
 
-.scheduled-class .time {
-  font-size: 0.7rem;
-  color: #888;
-  margin-top: 0.25rem;
+.detail-label {
+  font-weight: 500;
+  color: #555;
+  min-width: 80px;
+}
+
+.detail-value {
+  color: #333;
+  flex-grow: 1;
 }
 
 /* Estados de carga y error */
@@ -219,8 +245,7 @@
   
   .scheduled-class {
     padding: 0.5rem;
-    font-size: 0.8rem;
-    min-height: 70px;
+    min-height: 50px;
   }
   
   .dashboard-header h1 {
@@ -234,6 +259,14 @@
   .schedule-section h2 {
     font-size: 1.25rem;
   }
+  
+  .class-summary .subject {
+    font-size: 0.8rem;
+  }
+  
+  .class-summary .time {
+    font-size: 0.7rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -246,6 +279,15 @@
   }
   
   .schedule-table {
-    min-width: 700px; /* Ajuste para móviles */
+    min-width: 700px;
+  }
+  
+  .detail-label {
+    min-width: 70px;
+    font-size: 0.7rem;
+  }
+  
+  .detail-value {
+    font-size: 0.7rem;
   }
 }

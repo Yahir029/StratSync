@@ -8,6 +8,7 @@ const TeachersschedulePage = () => {
   const [horarios, setHorarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedClass, setExpandedClass] = useState(null);
 
   const API_BASE = process.env.REACT_APP_API_URL;
 
@@ -20,21 +21,26 @@ const TeachersschedulePage = () => {
     { id: 6, nombre: 'Sábado' }
   ];
 
-  const timeSlots = [
-    '07:00 - 08:00',
-    '08:00 - 09:00',
-    '09:00 - 10:00',
-    '10:00 - 11:00',
-    '11:00 - 12:00',
-    '12:00 - 13:00',
-    '13:00 - 14:00',
-    '14:00 - 15:00',
-    '15:00 - 16:00',
-    '16:00 - 17:00',
-    '17:00 - 18:00',
-    '18:00 - 19:00',
-    '19:00 - 20:00'
-  ];
+  // Generar slots cada 30 minutos desde las 7:00 hasta las 20:30
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 7; hour <= 20; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const start = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const endHour = minute === 30 ? hour + 1 : hour;
+        const endMinute = minute === 30 ? '00' : '30';
+        const end = `${endHour.toString().padStart(2, '0')}:${endMinute}`;
+        
+        // Solo agregar slots válidos (hasta 20:30)
+        if (hour < 20 || (hour === 20 && minute === 0)) {
+          slots.push(`${start} - ${end}`);
+        }
+      }
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
 
   const formatHora = (hora) => hora?.substring(0, 5) || '--:--';
 
@@ -52,6 +58,7 @@ const TeachersschedulePage = () => {
 
         const data = await response.json();
 
+        // Ordenar por día y hora de inicio
         const horariosOrdenados = data.sort((a, b) =>
           a.dia_semana - b.dia_semana ||
           a.hora_inicio.localeCompare(b.hora_inicio)
@@ -69,6 +76,10 @@ const TeachersschedulePage = () => {
     fetchHorarios();
   }, [user, API_BASE]);
 
+  const toggleExpandClass = (classId) => {
+    setExpandedClass(expandedClass === classId ? null : classId);
+  };
+
   const getClase = (diaId, timeSlot) => {
     const [horaInicioSlot] = timeSlot.split(' - ');
     const clase = horarios.find(h =>
@@ -78,14 +89,36 @@ const TeachersschedulePage = () => {
 
     if (!clase) return null;
 
+    const isExpanded = expandedClass === clase.id;
+
     return (
-      <div className="scheduled-class">
-        <div className="subject">{clase.materia.nombre}</div>
-        <div className="category">{clase.materia.categoria.nombre}</div>
-        <div className="classroom">Aula: {clase.aula || 'Por asignar'}</div>
-        <div className="time">
-          {formatHora(clase.hora_inicio)} - {formatHora(clase.hora_fin)}
+      <div 
+        className={`scheduled-class ${isExpanded ? 'expanded' : ''}`}
+        onClick={() => toggleExpandClass(clase.id)}
+      >
+        <div className="class-summary">
+          <div className="subject">{clase.materia.nombre}</div>
+          <div className="time">{formatHora(clase.hora_inicio)} - {formatHora(clase.hora_fin)}</div>
         </div>
+        
+        {isExpanded && (
+          <div className="class-details">
+            <div className="detail-row">
+              <span className="detail-label">Profesor:</span>
+              <span className="detail-value">{clase.profesor.nombre}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">Categoría:</span>
+              <span className="detail-value">{clase.materia.categoria.nombre}</span>
+            </div>
+            {clase.descripcion && (
+              <div className="detail-row">
+                <span className="detail-label">Descripción:</span>
+                <span className="detail-value">{clase.descripcion}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -113,7 +146,7 @@ const TeachersschedulePage = () => {
     <MainLayout>
       <div className="teachers-schedule-page">
         <div className="dashboard-header">
-          <h1>Bienvenido, {user?.nombre}</h1>
+          <h1>Bienvenid@, {user?.nombre}</h1>
           <p>Tu horario personalizado</p>
         </div>
 
