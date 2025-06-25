@@ -362,7 +362,7 @@ const TeachersPage = () => {
                   className={`teacher-card ${selectedTeachers.includes(teacher.id) ? 'selected' : ''}`}
                   onClick={() => toggleTeacherSelection(teacher.id)}
                 >
-                 {/* <div className="teacher-oval">
+                  <div className="teacher-oval">
                     {teacher.foto_perfil ? (
                       <img
                         src={`data:image/*;base64,${teacher.foto_perfil}`}
@@ -377,7 +377,7 @@ const TeachersPage = () => {
                         <FaCheck />
                       </div>
                     )}
-                  </div> */}
+                  </div>
 
                   
                   <div className="teacher-info">
