@@ -301,14 +301,38 @@ const SchedulePage = () => {
         return;
       }
 
-      if (editingScheduleId) {
-        await updateSchedule(editingScheduleId, newSchedule);
-        showNotification('Horario actualizado correctamente');
-      } else {
-        await createSchedule(newSchedule);
-        showNotification('Horario creado correctamente');
-      }
+      // if (editingScheduleId) {
+      //  await updateSchedule(editingScheduleId, newSchedule);
+      //  showNotification('Horario actualizado correctamente');
+      //} else {
+      //  await createSchedule(newSchedule);
+      //  showNotification('Horario creado correctamente');
+      //}
 
+      // Guardar la descripción en local storage
+        let horarioId = editingScheduleId;
+
+          if (editingScheduleId) {
+            await updateSchedule(editingScheduleId, newSchedule);
+            showNotification('Horario actualizado correctamente');
+          } else {
+            const response = await createSchedule(newSchedule);
+            horarioId = response?.id; // ✅ Aquí usamos solo .id
+            showNotification('Horario creado correctamente');
+          }
+
+          // 🔐 Guardar la descripción en localStorage
+          if (newAssignment.description && horarioId) {
+            const descripciones = JSON.parse(localStorage.getItem('descripcionesClases') || '{}');
+            descripciones[horarioId] = newAssignment.description;
+            localStorage.setItem('descripcionesClases', JSON.stringify(descripciones));
+          }
+          
+
+
+
+
+    
       await loadData();
       setShowAssignmentForm(false);
       setEditingScheduleId(null);
@@ -368,7 +392,7 @@ const SchedulePage = () => {
     setShowAssignmentForm(true);
   };
 
-  const handleDeleteSchedule = async (id) => {
+  /*const handleDeleteSchedule = async (id) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este horario?')) {
       try {
         await deleteSchedule(id);
@@ -380,7 +404,29 @@ const SchedulePage = () => {
         showNotification(`Error: ${errorMsg}`, 'error');
       }
     }
-  };
+  };*/
+
+    //Eliminar comentario
+    const handleDeleteSchedule = async (id) => {
+      if (window.confirm('¿Estás seguro de que deseas eliminar este horario?')) {
+        try {
+          await deleteSchedule(id);
+
+          // 🧹 Eliminar la descripción del localStorage
+          const descripciones = JSON.parse(localStorage.getItem('descripcionesClases') || '{}');
+          delete descripciones[id];
+          localStorage.setItem('descripcionesClases', JSON.stringify(descripciones));
+
+          await loadData();
+          showNotification('Horario eliminado correctamente');
+        } catch (err) {
+          console.error('Error al eliminar horario:', err);
+          const errorMsg = err.response?.data?.error || err.message || 'Error al eliminar';
+          showNotification(`Error: ${errorMsg}`, 'error');
+        }
+      }
+    };
+
 
   const handleClassClick = (schedule) => {
     setExpandedClass(schedule);
@@ -470,6 +516,11 @@ const SchedulePage = () => {
     
     return occupied;
   }, [groupedSchedules, days, timeSlots]);
+
+    //Descripción del horario
+    const descripcionesGuardadas = JSON.parse(localStorage.getItem('descripcionesClases') || '{}');
+    const descripcionLocal = expandedClass?.id ? descripcionesGuardadas[expandedClass.id] : null;
+
 
   return (
     <MainLayout>
@@ -610,7 +661,7 @@ const SchedulePage = () => {
             </div>
           )}
         </div>
-
+        {/*Ventana de agregar materia */}
         {showClassDetails && expandedClass && (
           <>
             <div className="class-details-backdrop" onClick={closeClassDetails}></div>
@@ -631,11 +682,21 @@ const SchedulePage = () => {
               <div className="detail-item">
                 <strong>Categoría:</strong> {getCategoryName(getCategoryId(expandedClass))}
               </div>
-              {expandedClass.descripcion && (
+
+             {/* {expandedClass.descripcion && (
                 <div className="detail-item">
-                  <strong>Descripción:</strong> {expandedClass.descripcion}
+                  // <strong>Descripción:</strong> {expandedClass.descripcion}
+                 //</div>
+              // )} */}
+
+              {/* Bloque JSX */}
+              {descripcionLocal && (
+                <div className="detail-item">
+                  <strong>Descripción:</strong> {descripcionLocal}
                 </div>
               )}
+
+
               <div className="detail-actions">
                 <button 
                   className="edit-btn"
