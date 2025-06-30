@@ -27,6 +27,12 @@ export default (sequelize, DataTypes) => {
     as: 'categoria',
     onDelete: 'SET NULL' // Añade esto para consistencia
   });
+
+  // AÑADIR RELACIÓN CON HORARIOS
+  Materia.hasMany(models.Horario, {
+    foreignKey: 'materia_id',
+    as: 'horarios'
+  });
 };
 
   return Materia;

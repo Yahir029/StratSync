@@ -43,81 +43,183 @@ const ReportsPage = () => {
 
   const handleGeneratePDF = async () => {
     try {
-      const doc = new jsPDF();
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+
       let firstPage = true;
 
-      // Convertir imagen a base64
-      const toBase64 = (url) =>
-        fetch(url)
-          .then((res) => res.blob())
-          .then(
-            (blob) =>
-              new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-              })
-          );
+      // Colores profesionales
+      const primaryColor = [9, 25, 255];
+      const secondaryColor = [245, 247, 250];
+      const accentColor = [41, 128, 185];
+      const headerHeight = 30;
+      const margin = 15;
+
+      // Convertir logo a base64
+      const toBase64 = (url) => fetch(url).then(res => res.blob()).then(blob =>
+        new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        })
+      );
 
       const logoBase64 = await toBase64(logoImg);
+      
+      // Función para formatear fecha
+      const formatDate = (date) => {
+        const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const months = [
+          'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+        
+        const dayName = days[date.getDay()];
+        const day = date.getDate();
+        const monthName = months[date.getMonth()];
+        const year = date.getFullYear();
+        
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        
+        return {
+          dateStr: `${dayName}, ${day} de ${monthName} de ${year}`,
+          timeStr: `${hours}:${minutes}`
+        };
+      };
 
       const now = new Date();
-      const dateStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
+      const { dateStr, timeStr } = formatDate(now);
 
-      let fileName;
+      // Generar nombre de archivo
+      let fileName = `Horarios_${now.toISOString().slice(0, 10).replace(/-/g, '')}.pdf`;
+
       if (seleccionados.length === 1) {
         const prof = profesores.find(p => p.id === seleccionados[0]);
-        const cleanName = prof?.profesor.replace(/[^\w\sáéíóúÁÉÍÓÚñÑüÜ]/gi, '').replace(/\s+/g, ' ');
-        fileName = `Horario ${cleanName} ${dateStr}.pdf`;
-      } else {
-        fileName = `Horarios ${dateStr}.pdf`;
+        if (prof) {
+          const cleanName = prof.profesor.replace(/[^\w\sáéíóúÁÉÍÓÚñÑüÜ]/gi, '').replace(/\s+/g, '_');
+          fileName = `Horario_${cleanName}_${now.toISOString().slice(0, 10).replace(/-/g, '')}.pdf`;
+        }
       }
 
       seleccionados.forEach((id, index) => {
         const prof = profesores.find(p => p.id === id);
         if (!prof) return;
 
-        if (!firstPage) doc.addPage();
+        if (!firstPage) doc.addPage('landscape');
         firstPage = false;
 
         const pageWidth = doc.internal.pageSize.getWidth();
-        const imgWidth = 50;
-        const x = (pageWidth - imgWidth) / 2;
-        doc.addImage(logoBase64, 'PNG', x, 5, imgWidth, 30);
+        const pageHeight = doc.internal.pageSize.getHeight();
 
+        // Encabezado con fondo
+        doc.setFillColor(...secondaryColor);
+        doc.rect(0, 0, pageWidth, headerHeight, 'F');
+        
+        // Logo
+        doc.addImage(logoBase64, 'PNG', margin, 4, 25, 25);
+
+        // Información de reporte - tamaño de fuente reducido para mejor ajuste
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+        
+        // Texto alineado a la derecha con dos líneas
+        doc.text("Reporte Académico - StratSync", 272, 15, { align: 'right' });
+        doc.text(`Fecha: ${dateStr}`, 270, 20, { align: 'right' });
+        doc.text(`Hora: ${timeStr}`, 279, 25, { align: 'right' });
+
+        // Título principal
         doc.setFontSize(16);
-        doc.text(`Horario de: ${prof.profesor}`, 14, 40);
+        doc.setTextColor(0);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Horario del Profesor: ${prof.profesor}`, margin, headerHeight + 15);
 
-        const columnas = ['Materia', 'Categoría', 'Horario', 'Comentarios'];
-        
+        // Línea decorativa
+        doc.setDrawColor(...accentColor);
+        doc.setLineWidth(0.5);
+        doc.line(margin, headerHeight + 20, pageWidth - margin, headerHeight + 20);
 
-          
-          const filas = prof.horarios.map(h => [
-            `${h.materia}\n${h.descripcion || 'Introducción'}`, // texto principal + texto debajo
-            h.categoría,
-            h.horario
-          ]);
+        // Preparar datos de la tabla
+        const columnas = [
+          { header: 'Materia', dataKey: 'materia' },
+          { header: 'Categoría', dataKey: 'categoria' },
+          { header: 'Horario', dataKey: 'horario' },
+          { header: 'Descripción', dataKey: 'descripcion' }
+        ];
 
+        const filas = prof.horarios.map(h => ({
+          materia: h.materia,
+          categoria: h.categoria,
+          horario: h.horario.replace(/(\d{2}:\d{2}):\d{2}/g, '$1'),
+          descripcion: h.descripcion || ''
+        }));
 
-        
+        const tableWidth = pageWidth - 2 * margin;
+
+        // Generar tabla
         autoTable(doc, {
-          startY: 50,
-          head: [columnas],
+          startY: headerHeight + 25,
+          columns: columnas,
           body: filas,
           theme: 'grid',
+          styles: {
+            fontSize: 10,
+            cellPadding: 4,
+            valign: 'middle',
+            lineColor: [200, 200, 200],
+            lineWidth: 0.25,
+            overflow: 'linebreak'
+          },
           headStyles: {
-            fillColor: [9, 25, 255],
+            fillColor: primaryColor,
             textColor: 255,
-            fontStyle: 'bold'
-          }
+            fontStyle: 'bold',
+            fontSize: 11
+          },
+          alternateRowStyles: {
+            fillColor: secondaryColor
+          },
+          columnStyles: {
+            materia: { cellWidth: tableWidth * 0.20, fontStyle: 'bold' },
+            categoria: { cellWidth: tableWidth * 0.15 },
+            horario: { cellWidth: tableWidth * 0.20 },
+            descripcion: {
+              cellWidth: tableWidth * 0.45,
+              cellPadding: 3
+            }
+          },
+          margin: { horizontal: margin }
         });
+
+        // Pie de página
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(9);
+          doc.setTextColor(100);
+          
+          // Línea decorativa
+          doc.setDrawColor(...accentColor);
+          doc.setLineWidth(0.3);
+          doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+          
+          // Número de página
+          doc.text(
+            `Página ${i} de ${pageCount}`,
+            pageWidth / 2,
+            pageHeight - 10,
+            { align: 'center' }
+          );
+        }
       });
 
       doc.save(fileName);
     } catch (error) {
-      console.error('Error al generar PDF:', error);
-      alert('Ocurrió un error al generar el PDF');
+      console.error('Error generando PDF:', error);
+      alert('Error al generar PDF');
     }
   };
 
