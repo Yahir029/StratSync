@@ -5,7 +5,8 @@ const { Teacher } = db;
 export const loginTeacher = async (req, res) => {
   try {
     const { codigoAcceso } = req.body;
-    console.log('🔐 Código recibido:', codigoAcceso);
+    //console.log('🔐 Código recibido:', codigoAcceso);
+    console.log('🔐 Ingresando con un codigo');
 
     const teacher = await Teacher.findOne({ where: { codigo_acceso_maestro: codigoAcceso } });
 
