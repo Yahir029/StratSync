@@ -47,23 +47,17 @@ export const CategoriesProvider = ({ children }) => {
   };
 
   // -- 3) Función para eliminar una categoría dado su nombre
-  const deleteCategory = async (nombre) => {
-    // Buscamos el objeto con ese nombre para obtener el id
-    const catToDelete = categoriesObj.find((c) => c.nombre === nombre);
-    if (!catToDelete) return false;
-
-    try {
-      await axios.delete(
-        `${process.env.REACT_APP_API_URL}/api/categories/${catToDelete.id}`
-      );
-      // Removemos del estado local
-      setCategoriesObj((prev) => prev.filter((c) => c.id !== catToDelete.id));
-      return true;
-    } catch (error) {
-      console.error('Error al eliminar categoría:', error);
-      return false;
-    }
-  };
+  const deleteCategory = async (id) => {
+  try {
+    await axios.delete(`${process.env.REACT_APP_API_URL}/api/categories/${id}`);
+    // Removemos del estado local por ID
+    setCategoriesObj((prev) => prev.filter((c) => c.id !== id));
+    return true;
+  } catch (error) {
+    console.error('Error al eliminar categoría:', error);
+    return false;
+  }
+};
 
   // -- Derivados de solo nombres para consumo en componentes
   const categoryNames = ['Todos', ...categoriesObj.map((c) => c.nombre), 'Sin asignar'];

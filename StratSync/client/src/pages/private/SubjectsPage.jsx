@@ -245,41 +245,44 @@ const SubjectsPage = () => {
   };
 
   const handleDeleteCategory = async (categoryToDelete) => {
-    if (['Todos', 'Sin asignar'].includes(categoryToDelete)) return;
+  if (['Todos', 'Sin asignar'].includes(categoryToDelete)) return;
 
-    if (window.confirm(`¿Eliminar la categoría "${categoryToDelete}"? Las materias serán movidas a "Sin asignar".`)) {
-      try {
-        setLoading(true);
-        const categoryToDeleteObj = dynamicCategories.find(cat => cat.nombre === categoryToDelete);
-        if (!categoryToDeleteObj) return;
+  const categoryToDeleteObj = dynamicCategories.find(cat => cat.nombre === categoryToDelete);
+  if (!categoryToDeleteObj) return;
 
-        await deleteCategory(categoryToDeleteObj.id);
+  if (window.confirm(`¿Eliminar la categoría "${categoryToDelete}"? Las materias serán movidas a "Sin asignar".`)) {
+    try {
+      setLoading(true);
+      // Pasar el ID de la categoría
+      await deleteCategory(categoryToDeleteObj.id);
 
-        setSubjectsData(prev => {
-          const updatedData = { ...prev };
-          const subjectsToMove = updatedData[categoryToDelete] || [];
+      // Actualizar las materias
+      setSubjectsData(prev => {
+        const updatedData = { ...prev };
+        const subjectsToMove = updatedData[categoryToDelete] || [];
+        
+        updatedData['Sin asignar'] = [
+          ...(updatedData['Sin asignar'] || []),
+          ...subjectsToMove.map(subject => ({
+            ...subject,
+            categoria: null
+          }))
+        ];
+        
+        delete updatedData[categoryToDelete];
+        return updatedData;
+      });
 
-          updatedData['Sin asignar'] = [
-            ...(updatedData['Sin asignar'] || []),
-            ...subjectsToMove.map(subject => ({
-              ...subject,
-              categoria: null
-            }))
-          ];
-
-          delete updatedData[categoryToDelete];
-          return updatedData;
-        });
-
-        showNotification(`Categoría "${categoryToDelete}" eliminada`);
-      } catch (err) {
-        setError('Error al eliminar la categoría');
-        showNotification('Error al eliminar la categoría', 'error');
-      } finally {
-        setLoading(false);
-      }
+      // Mostrar notificación y detener carga
+      showNotification(`Categoría "${categoryToDelete}" eliminada`);
+      setLoading(false);
+    } catch (err) {
+      setError('Error al eliminar la categoría');
+      showNotification('Error al eliminar la categoría', 'error');
+      setLoading(false);
     }
-  };
+  }
+};
 
   const prepareEditForm = (subject) => {
     setNewSubject({
