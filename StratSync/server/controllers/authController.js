@@ -3,7 +3,7 @@ const { sequelize } = db;
 
 export const loginAdmin = async (req, res) => {
   const { usuario, contraseña } = req.body;
-  console.log('usuario:', usuario, 'contraseña:', contraseña);
+  //console.log('usuario:', usuario, 'contraseña:', contraseña);
 
   try {
     const [result] = await sequelize.query(

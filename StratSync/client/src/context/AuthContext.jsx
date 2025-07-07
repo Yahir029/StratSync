@@ -65,7 +65,7 @@ const handleTeacherLogin = async (codigoAcceso) => {
     };
     
     // 3. Depurar antes de guardar
-    console.log("Datos del profesor a guardar:", teacherData);
+    //console.log("Datos del profesor a guardar:", teacherData);
     
     setUser(teacherData);
     localStorage.setItem('stratSyncUser', JSON.stringify(teacherData));
