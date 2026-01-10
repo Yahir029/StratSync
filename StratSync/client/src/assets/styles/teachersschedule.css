@@ -1,0 +1,293 @@
+:root {
+  --primary-color: #4A00E0;
+  --secondary-color: #8E2DE2;
+  --light-bg: #f8f9fa;
+  --border-color: #e0e0e0;
+  --text-dark: #333;
+  --text-light: #666;
+}
+
+.teachers-schedule-page {
+  padding-top: 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: var(--light-bg);
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.dashboard-header h1 {
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.dashboard-header p {
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+.schedule-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin: 0 1rem 2rem;
+}
+
+.schedule-section h2 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #f0f0f0;
+  font-size: 1.5rem;
+}
+
+.schedule-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.schedule-table th,
+.schedule-table td {
+  padding: 0.75rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+
+.schedule-table th {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  position: sticky;
+  top: 0;
+}
+
+.schedule-table tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.time-slot {
+  font-weight: 600;
+  background: #f8f8f8;
+  color: var(--text-dark);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* Clase programada */
+.scheduled-class {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin: 0.15rem;
+  background: #f5f9ff;
+  border-left: 3px solid var(--primary-color);
+  min-height: 60px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.scheduled-class:hover {
+  background: #e8f0ff;
+}
+
+.scheduled-class.expanded {
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.class-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.class-summary .subject {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 0.85rem;
+}
+
+.class-summary .time {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.class-details {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #ddd;
+}
+
+.detail-row {
+  display: flex;
+  margin-bottom: 0.3rem;
+  font-size: 0.75rem;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #555;
+  min-width: 80px;
+}
+
+.detail-value {
+  color: #333;
+  flex-grow: 1;
+}
+
+/* Estados de carga y error */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.loading-spinner {
+  border: 4px solid #f0f0f0;
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  background: #ffeeee;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  margin: 1rem;
+  border-left: 4px solid #ff5252;
+}
+
+.error-message h2 {
+  color: #ff5252;
+  margin-bottom: 0.5rem;
+}
+
+.retry-btn {
+  background: #ff5252;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.retry-btn:hover {
+  background: #ff3d3d;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin: 1rem;
+  border: 1px dashed #ddd;
+}
+
+.empty-state h2 {
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: var(--text-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .teachers-schedule-page {
+    padding-top: 70px;
+  }
+  
+  .schedule-section {
+    padding: 1rem;
+    margin: 0 0.5rem 1.5rem;
+    border-radius: 8px;
+  }
+  
+  .schedule-table th,
+  .schedule-table td {
+    padding: 0.5rem;
+  }
+  
+  .scheduled-class {
+    padding: 0.5rem;
+    min-height: 50px;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .dashboard-header p {
+    font-size: 1rem;
+  }
+  
+  .schedule-section h2 {
+    font-size: 1.25rem;
+  }
+  
+  .class-summary .subject {
+    font-size: 0.8rem;
+  }
+  
+  .class-summary .time {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .teachers-schedule-page {
+    padding-top: 60px;
+  }
+  
+  .schedule-section {
+    margin: 0 0.25rem 1rem;
+  }
+  
+  .schedule-table {
+    min-width: 700px;
+  }
+  
+  .detail-label {
+    min-width: 70px;
+    font-size: 0.7rem;
+  }
+  
+  .detail-value {
+    font-size: 0.7rem;
+  }
+}
