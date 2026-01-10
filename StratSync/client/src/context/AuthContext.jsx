@@ -1,61 +1,86 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUser, loginAdmin } from '../services/authService';
+import { adminLogin as loginAdminService, teacherLogin as loginTeacherService } from '../services/authService';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null);         // puede ser admin o teacher
   const [loading, setLoading] = useState(true);
+  const [adminAttempts, setAdminAttempts] = useState(0);
+  const [teacherAttempts, setTeacherAttempts] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      const storedUser = localStorage.getItem('stratSyncUser');
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-        } catch (error) {
-          localStorage.removeItem('stratSyncUser');
-        }
-      }
-      setLoading(false);
-    };
-    
-    initializeAuth();
+    const storedUser = localStorage.getItem('stratSyncUser');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
-  const login = async (username) => {
+  // Login administrador
+  const handleAdminLogin = async (username, password) => {
+    if (adminAttempts >= 3) {
+      throw new Error('Demasiados intentos. Espere 5 minutos');
+    }
+
     try {
-      const userData = await loginUser(username);
-      setUser(userData);
-      localStorage.setItem('stratSyncUser', JSON.stringify(userData));
-      navigate('/dashboard');
-      return userData;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+      const response = await loginAdminService(username, password);
+      const adminData = {
+        username: response.username,
+        isAdmin: true,
+        token: response.token,
+      };
+      setUser(adminData);
+      localStorage.setItem('stratSyncUser', JSON.stringify(adminData));
+      setAdminAttempts(0);
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setAdminAttempts((prev) => prev + 1);
+      throw err;
     }
   };
 
-  const adminLogin = async (username, password) => {
-    try {
-      const userData = await loginAdmin(username, password);
-      setUser(userData);
-      localStorage.setItem('stratSyncUser', JSON.stringify(userData));
-      navigate('/dashboard');
-      return userData;
-    } catch (error) {
-      console.error('Admin login error:', error);
-      throw error;
-    }
-  };
+  // Login profesor
+  // AuthContext.jsx - Sección de login profesor
+const handleTeacherLogin = async (codigoAcceso) => {
+  if (teacherAttempts >= 3) {
+    throw new Error('Demasiados intentos. Espere 5 minutos');
+  }
+
+  try {
+    const response = await loginTeacherService(codigoAcceso);
+    
+    // 1. Verificar la estructura real de la respuesta
+    console.log("Respuesta completa de loginTeacherService:", response);
+    
+    // 2. Extraer los nombres correctamente
+    const teacherData = {
+      id: response.teacher.id,
+      nombre: response.teacher.nombres, // Cambiado a plural
+      apellidos: response.teacher.apellidos,
+      isAdmin: false,
+      token: response.token || null,
+    };
+    
+    // 3. Depurar antes de guardar
+    console.log("Datos del profesor a guardar:", teacherData);
+    
+    setUser(teacherData);
+    localStorage.setItem('stratSyncUser', JSON.stringify(teacherData));
+    setTeacherAttempts(0);
+    navigate('/teacher-schedule', { replace: true });
+  } catch (err) {
+    setTeacherAttempts((prev) => prev + 1);
+    throw err;
+  }
+};
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('stratSyncUser');
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -65,9 +90,11 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         isAdmin: user?.isAdmin || false,
         loading,
-        login,
-        adminLogin,
-        logout
+        adminLogin: handleAdminLogin,
+        teacherLogin: handleTeacherLogin,
+        logout,
+        adminAttempts,
+        teacherAttempts,
       }}
     >
       {children}

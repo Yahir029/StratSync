@@ -17,6 +17,26 @@
   z-index: 1000;
 }
 
+.pet-image-inline {
+  width: 40px;
+  height: 40px;
+  border-radius: 0%;
+}
+
+.header-pet {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.pet-image {
+  width: 55px; /* o el tamaño que prefieras */
+  height: auto;
+  border-radius: 0%;
+}
+
+
 .header-logo {
   display: flex;
   align-items: center;
