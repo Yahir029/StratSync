@@ -1,29 +1,38 @@
-import axios from 'axios';
+// client/src/services/authService.js
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+export const adminLogin = async (usuario, contraseña) => {
+  const response = await fetch('http://localhost:5000/api/auth/admin-login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ usuario, contraseña }),
+  });
 
-export const loginUser = async (username) => {
-  try {
-    const response = await axios.post(`${API_URL}/auth/login`, { username });
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response?.data?.message || 'Error al iniciar sesión');
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Error en login administrador');
   }
+
+  return response.json();
 };
 
-export const loginAdmin = async (username, password) => {
-  try {
-    const response = await axios.post(`${API_URL}/auth/admin-login`, { 
-      username, 
-      password 
-    });
-    return response.data;
-  } catch (error) {
-    throw new Error(error.response?.data?.message || 'Error al iniciar sesión como administrador');
+// ✅ NUEVA función para login de profesores
+// client/src/services/authService.js
+
+export const teacherLogin = async (codigoAcceso) => {
+  const response = await fetch('http://localhost:5000/api/teacher-auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ codigoAcceso }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Error en login de maestro');
   }
-};
 
-export const logoutUser = async () => {
-  // Lógica para limpiar el token en el servidor si es necesario
-  return Promise.resolve();
-};
+  return response.json();
+};;
